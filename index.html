@@ -203,6 +203,7 @@
   .why span{ font-size:.72rem; padding:3px 8px; border-radius:999px; background:var(--surface-2); color:var(--ink-soft); }
   .why span.neg{ color:var(--danger); }
   .pair-foot{ display:flex; justify-content:space-between; align-items:center; gap:8px; border-top:1px dashed var(--border); padding-top:8px; }
+  .pair-actions{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
   .score{ font-size:.78rem; color:var(--ink-soft); font-variant-numeric:tabular-nums; }
 
   table{ width:100%; border-collapse:collapse; font-size:.86rem; }
@@ -253,7 +254,7 @@
     <div class="top-row">
       <div class="brand">
         <h1>Parrainage L1</h1>
-        <p>Binômes entre nouveaux étudiants et étudiants plus avancés</p>
+        <p id="subtitle">Campus de Marcory · Abidjan</p>
       </div>
       <button class="btn" id="shareBtn" type="button">Partager le formulaire</button>
     </div>
@@ -268,7 +269,7 @@
     <div class="form-card">
       <div id="formWrap">
         <h2>Inscription au parrainage</h2>
-        <p class="lead">Tu arrives en L1 et tu veux un·e étudiant·e plus avancé·e pour t'aider à prendre tes marques ? Ou tu es en L2 ou plus et tu veux accompagner un·e nouvel·le ? Remplis ce formulaire : les binômes sont formés selon ton école, ta provenance, ta filière et tes centres d'intérêt.</p>
+        <p class="lead" id="lead">Tu viens d'arriver en L1 sur le campus de Marcory et tu veux un·e aîné·e de la filière pour t'aider à prendre tes marques ? Ou tu es en L2 ou plus et tu veux accompagner un·e nouvel·le ? Inscris-toi : les binômes sont formés selon ta commune, ta région d'origine, ton lycée, ta série de BAC et tes centres d'intérêt.</p>
 
         <form class="signup" id="signupForm" novalidate>
           <fieldset>
@@ -282,31 +283,25 @@
           <fieldset>
             <legend>Mes informations</legend>
             <div class="two-col">
-              <div class="field"><label for="f-firstName">Prénom</label><input id="f-firstName" autocomplete="given-name" required></div>
               <div class="field"><label for="f-lastName">Nom</label><input id="f-lastName" autocomplete="family-name" required></div>
-            </div>
-            <div class="two-col">
-              <div class="field"><label for="f-email">Email</label><input id="f-email" type="email" autocomplete="email" required></div>
-              <div class="field"><label for="f-phone">Téléphone <span class="opt">(facultatif)</span></label><input id="f-phone" type="tel" autocomplete="tel"></div>
-            </div>
-          </fieldset>
-
-          <fieldset>
-            <legend>Mes études</legend>
-            <div class="field">
-              <label for="f-school">École / université</label>
-              <input id="f-school" list="schoolList" required placeholder="Choisis dans la liste ou écris le nom">
-              <datalist id="schoolList"></datalist>
+              <div class="field"><label for="f-firstName">Prénoms</label><input id="f-firstName" autocomplete="given-name" required></div>
             </div>
             <div class="two-col">
               <div class="field">
-                <label for="f-program">Filière / parcours</label>
-                <input id="f-program" list="programList" placeholder="Ex. Droit, Informatique…">
-                <datalist id="programList"></datalist>
+                <label for="f-phone">Numéro WhatsApp</label>
+                <input id="f-phone" type="tel" autocomplete="tel" inputmode="tel" required placeholder="07 00 00 00 00">
+                <span class="hint">Numéro ivoirien à 10 chiffres. Ton binôme te contactera ici.</span>
               </div>
+              <div class="field"><label for="f-email">Email <span class="opt">(facultatif)</span></label><input id="f-email" type="email" autocomplete="email"></div>
+            </div>
+            <div class="two-col">
               <div class="field">
                 <label for="f-level">Niveau</label>
                 <select id="f-level"></select>
+              </div>
+              <div class="field">
+                <label for="f-studentId">Matricule <span class="opt">(facultatif)</span></label>
+                <input id="f-studentId" autocomplete="off">
               </div>
             </div>
             <div class="field" id="capacityField" hidden>
@@ -320,16 +315,36 @@
           </fieldset>
 
           <fieldset>
+            <legend>À Abidjan</legend>
+            <div class="field">
+              <label for="f-residence">Commune où j'habite</label>
+              <select id="f-residence" required></select>
+              <span class="hint">Pour former des binômes qui peuvent se voir facilement autour du campus de Marcory.</span>
+            </div>
+          </fieldset>
+
+          <fieldset>
             <legend>D'où je viens</legend>
             <div class="two-col">
               <div class="field">
-                <label for="f-country">Pays d'origine</label>
-                <input id="f-country" list="countryList" autocomplete="country-name">
-                <datalist id="countryList"></datalist>
+                <label for="f-region">Région d'origine</label>
+                <select id="f-region"></select>
               </div>
               <div class="field">
-                <label for="f-city">Ville ou région d'origine</label>
-                <input id="f-city" placeholder="Ex. Dakar, Lyon, Bretagne…">
+                <label for="f-city">Ville d'origine</label>
+                <input id="f-city" list="cityList" placeholder="Ex. Bouaké, Korhogo, Daloa…">
+                <datalist id="cityList"></datalist>
+              </div>
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label for="f-highschool">Lycée d'origine</label>
+                <input id="f-highschool" list="highschoolList" placeholder="Ex. Lycée classique d'Abidjan">
+                <datalist id="highschoolList"></datalist>
+              </div>
+              <div class="field">
+                <label for="f-bac">Série du BAC</label>
+                <select id="f-bac"></select>
               </div>
             </div>
             <div class="field">
@@ -351,11 +366,11 @@
             </div>
             <div class="field">
               <label for="f-notes" id="notesLabel">Ce que j'attends du parrainage</label>
-              <textarea id="f-notes" placeholder="Méthodes de travail, vie sur le campus, logement, orientation…"></textarea>
+              <textarea id="f-notes" placeholder="Méthodes de travail, emploi du temps, logement, transport, orientation…"></textarea>
             </div>
           </fieldset>
 
-          <label class="consent"><input type="checkbox" id="f-consent" required> J'accepte que mes réponses soient utilisées pour former les binômes, et que mon nom, mon email et mon école soient transmis à mon binôme et aux organisateurs du parrainage.</label>
+          <label class="consent"><input type="checkbox" id="f-consent" required> J'accepte que mes réponses servent à former les binômes, et que mon nom et mon numéro WhatsApp soient transmis à mon binôme et aux organisateurs du parrainage.</label>
 
           <div class="form-msg err" id="formError" hidden></div>
           <div class="form-actions">
@@ -394,10 +409,20 @@
         <div class="bot-body">
           <p class="muted" style="margin:0;">Pour chaque critère, choisis si le bot doit réunir des profils identiques, des profils différents, ou ignorer le critère. Le poids (0 à 10) donne son importance. « Obligatoirement identique » interdit tout binôme qui ne respecte pas le critère.</p>
           <div id="criteriaList"></div>
+          <div class="two-col">
+            <div class="field">
+              <label for="universityInput">Université (affichée sur le formulaire)</label>
+              <input id="universityInput" placeholder="Nom de l'université">
+            </div>
+            <div class="field">
+              <label for="programInput">Filière (affichée sur le formulaire)</label>
+              <input id="programInput" placeholder="Nom de la filière">
+            </div>
+          </div>
           <div class="field">
-            <label for="schoolsInput">Écoles proposées dans le formulaire (une par ligne)</label>
-            <textarea id="schoolsInput" placeholder="Université Paris Cité&#10;Sorbonne Université&#10;…"></textarea>
-            <span class="hint">Une liste commune évite que la même école soit écrite de plusieurs façons, ce qui fausserait le critère « école ».</span>
+            <label for="schoolsInput">Lycées proposés dans le formulaire (un par ligne)</label>
+            <textarea id="schoolsInput" placeholder="Lycée classique d'Abidjan&#10;Lycée Sainte-Marie de Cocody&#10;…"></textarea>
+            <span class="hint">Une liste commune évite que le même lycée soit écrit de plusieurs façons, ce qui fausserait le critère « lycée ». Les étudiants peuvent toujours écrire un lycée absent de la liste.</span>
           </div>
           <div class="bot-actions">
             <span class="muted" id="settingsMsg"></span>
@@ -456,14 +481,17 @@
   // Laisser vide pour un mode démo : les données restent dans ce navigateur.
   var API_URL = '';
 
-  var PROGRAMS = ['Droit','Économie-Gestion','Informatique','Mathématiques','Physique-Chimie','Sciences de la vie','Médecine / Santé','Psychologie','Sociologie','Histoire','Géographie','Lettres','Langues (LLCER / LEA)','STAPS','Arts','Philosophie','Ingénierie'];
-  var COUNTRIES = ['France','Algérie','Maroc','Tunisie','Sénégal','Côte d\'Ivoire','Cameroun','Mali','Guinée','Burkina Faso','Bénin','Togo','Gabon','Congo','RD Congo','Madagascar','Comores','Haïti','Belgique','Suisse','Canada','Liban','Chine','Vietnam','Brésil','Espagne','Italie','Portugal','Allemagne','Roumanie'];
-  var LANGUAGES = ['Français','Anglais','Arabe','Espagnol','Portugais','Allemand','Italien','Wolof','Lingala','Chinois'];
-  var INTERESTS = ['Sport','Musique','Jeux vidéo','Cinéma & séries','Lecture','Art & dessin','Voyages','Cuisine','Tech & code','Vie associative','Sorties','Engagement & bénévolat'];
-  var MODES = [{id:'presentiel', label:'Sur le campus'}, {id:'distanciel', label:'À distance'}, {id:'les-deux', label:'Peu importe'}];
-  var LEVELS = { filleul:['L1'], parrain:['L2','L3','M1','M2','Doctorat'] };
+  var CAMPUS = 'Campus de Marcory · Abidjan';
+  var COMMUNES = ['Marcory','Koumassi','Treichville','Port-Bouët','Plateau','Adjamé','Attécoubé','Cocody','Yopougon','Abobo','Bingerville','Anyama','Songon','Grand-Bassam','Autre'];
+  var REGIONS = ['District autonome d\'Abidjan','District autonome de Yamoussoukro','Agnéby-Tiassa','Bafing','Bagoué','Bélier','Béré','Bounkani','Cavally','Folon','Gbêkê','Gbôklé','Gôh','Gontougo','Grands-Ponts','Guémon','Hambol','Haut-Sassandra','Iffou','Indénié-Djuablin','Kabadougou','La Mé','Lôh-Djiboua','Marahoué','Moronou','Nawa','N\'Zi','Poro','San-Pédro','Sud-Comoé','Tchologo','Tonkpi','Worodougou','Hors de Côte d\'Ivoire'];
+  var CITIES = ['Abidjan','Bouaké','Daloa','Yamoussoukro','Korhogo','San-Pédro','Man','Gagnoa','Divo','Abengourou','Soubré','Bondoukou','Séguéla','Odienné','Ferkessédougou','Agboville','Dabou','Grand-Bassam','Dimbokro','Bouaflé','Sinfra','Issia','Duékoué','Guiglo','Katiola','Toumodi','Adzopé','Aboisso','Sassandra','Tiassalé'];
+  var BAC_SERIES = ['A1','A2','B','C','D','E','F (technique)','G1','G2','G3','Autre'];
+  var LANGUAGES = ['Français','Anglais','Baoulé','Dioula','Bété','Sénoufo','Agni','Attié','Abbey','Yacouba','Gouro','Guéré','Ébrié','Mooré'];
+  var INTERESTS = ['Football','Basket & autres sports','Musique','Danse','Jeux vidéo','Cinéma & séries','Lecture','Informatique & tech','Entrepreneuriat','Débats & éloquence','Mode & beauté','Cuisine','Religion & spiritualité','Vie associative','Sorties'];
+  var MODES = [{id:'presentiel', label:'Sur le campus de Marcory'}, {id:'distanciel', label:'En ligne (WhatsApp, appel)'}, {id:'les-deux', label:'Peu importe'}];
+  var LEVELS = { filleul:['L1'], parrain:['L2','L3','M1','M2'] };
 
-  var LOCAL_KEY = 'parrainage-v2';
+  var LOCAL_KEY = 'parrainage-abidjan-v1';
   var ADMIN_KEY_STORE = 'parrainage-admin-key';
   var M = window.Matching;
 
@@ -479,6 +507,18 @@
   function picks(name, list){
     return list.map(function(v){ return '<label class="pick"><input type="checkbox" name="'+name+'" value="'+escapeHtml(v)+'"><span>'+escapeHtml(v)+'</span></label>'; }).join('');
   }
+  function selectOptions(list, placeholder){
+    return '<option value="">'+escapeHtml(placeholder)+'</option>' + list.map(function(v){ return '<option>'+escapeHtml(v)+'</option>'; }).join('');
+  }
+  // Numéro ivoirien : 10 chiffres (depuis 2021), avec ou sans l'indicatif +225.
+  function normalizePhone(raw){
+    var d = String(raw || '').replace(/\D/g, '');
+    if (d.length === 13 && d.indexOf('225') === 0) d = d.slice(3);
+    if (d.length === 15 && d.indexOf('00225') === 0) d = d.slice(5);
+    if (!/^(01|05|07|21|25|27)\d{8}$/.test(d)) return '';
+    return '+225 ' + d.replace(/(\d{2})(?=\d)/g, '$1 ');
+  }
+  function waLink(phone){ return 'https://wa.me/' + String(phone || '').replace(/\D/g, ''); }
   function checked(name){ return Array.prototype.map.call(document.querySelectorAll('input[name="'+name+'"]:checked'), function(i){ return i.value; }); }
 
   /* ---------------- Stockage ---------------- */
@@ -526,8 +566,8 @@
     },
     register: function(student){
       if (!API_URL){
-        var dup = readLocal().students.some(function(s){ return M.norm(s.email) === M.norm(student.email) && s.role === student.role; });
-        if (dup) return Promise.reject(new Error('Cette adresse email est déjà inscrite avec ce rôle.'));
+        var dup = readLocal().students.some(function(s){ return s.phone === student.phone && s.role === student.role; });
+        if (dup) return Promise.reject(new Error('Ce numéro WhatsApp est déjà inscrit avec ce rôle.'));
         student.id = uid();
         student.createdAt = new Date().toISOString();
         return localWrite(function(db){ db.students.push(student); });
@@ -574,20 +614,25 @@
   var form = $('signupForm');
   var levelSelect = $('f-level');
 
-  $('programList').innerHTML = options(PROGRAMS);
-  $('countryList').innerHTML = options(COUNTRIES);
+  $('f-residence').innerHTML = selectOptions(COMMUNES, 'Choisis ta commune');
+  $('f-region').innerHTML = selectOptions(REGIONS, 'Choisis ta région');
+  $('cityList').innerHTML = options(CITIES);
+  $('f-bac').innerHTML = selectOptions(BAC_SERIES, 'Choisis ta série');
   $('languagePicks').innerHTML = picks('language', LANGUAGES);
   $('interestPicks').innerHTML = picks('interest', INTERESTS);
   $('modePicks').innerHTML = MODES.map(function(m, idx){
     return '<label class="pick"><input type="radio" name="mode" value="'+m.id+'"'+(idx===2?' checked':'')+'><span>'+m.label+'</span></label>';
   }).join('');
 
-  function loadSchools(){
-    store.config().then(function(settings){
-      $('schoolList').innerHTML = options(settings.schools || []);
-    }).catch(function(){});
+  // Nom de l'université, de la filière et liste des lycées : réglés par les organisateurs.
+  function applyConfig(settings){
+    var bits = [settings.program, settings.university].filter(Boolean);
+    $('subtitle').textContent = (bits.length ? bits.join(' · ') + ' — ' : '') + CAMPUS;
+    document.title = 'Parrainage L1' + (settings.program ? ' — ' + settings.program : '');
+    $('highschoolList').innerHTML = options(settings.schools || []);
   }
-  loadSchools();
+  function loadConfig(){ store.config().then(applyConfig).catch(function(){}); }
+  loadConfig();
 
   function currentRole(){ return form.querySelector('input[name="role"]:checked').value; }
   function syncRole(){
@@ -611,19 +656,21 @@
     var data = {
       role: role,
       firstName: val('firstName'), lastName: val('lastName'),
-      email: val('email'), phone: val('phone'),
-      school: val('school'), program: val('program'), level: levelSelect.value,
+      phone: normalizePhone(val('phone')), email: val('email'), studentId: val('studentId'),
+      level: levelSelect.value,
       capacity: role === 'parrain' ? Number($('f-capacity').value) : 0,
-      country: val('country'), city: val('city'),
+      residence: val('residence'), region: val('region'), city: val('city'),
+      highschool: val('highschool'), bac: val('bac'),
       languages: checked('language').concat(others),
       interests: checked('interest'),
       mode: form.querySelector('input[name="mode"]:checked').value,
       notes: val('notes')
     };
 
-    if (!data.firstName || !data.lastName) return showFormError('Indique ton prénom et ton nom.');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) return showFormError('Indique une adresse email valide.');
-    if (!data.school) return showFormError('Indique ton école ou ton université.');
+    if (!data.lastName || !data.firstName) return showFormError('Indique ton nom et tes prénoms.');
+    if (!data.phone) return showFormError('Indique un numéro WhatsApp ivoirien valide (10 chiffres, ex. 07 00 00 00 00).');
+    if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) return showFormError("L'adresse email n'est pas valide.");
+    if (!data.residence) return showFormError('Indique la commune où tu habites.');
     if (!$('f-consent').checked) return showFormError("Coche la case d'accord pour valider l'inscription.");
 
     var btn = $('submitBtn');
@@ -633,8 +680,8 @@
       $('formWrap').hidden = true;
       $('successWrap').hidden = false;
       $('successMsg').textContent = role === 'parrain'
-        ? 'Merci ' + data.firstName + ' ! Tu recevras le nom de ton ou ta filleul·e dès que les binômes seront formés.'
-        : 'Bienvenue ' + data.firstName + ' ! Tu recevras le nom de ton parrain ou de ta marraine dès que les binômes seront formés.';
+        ? 'Merci ' + data.firstName + ' ! Tu seras contacté·e sur WhatsApp avec le nom de ton ou ta filleul·e dès que les binômes seront formés.'
+        : 'Bienvenue sur le campus, ' + data.firstName + ' ! Tu seras contacté·e sur WhatsApp avec le nom de ton parrain ou de ta marraine dès que les binômes seront formés.';
     }).catch(function(err){
       showFormError("L'inscription n'a pas pu être enregistrée : " + err.message);
     }).then(function(){
@@ -713,6 +760,8 @@
       '</div>';
     }).join('');
     $('schoolsInput').value = (admin.settings.schools || []).join('\n');
+    $('universityInput').value = admin.settings.university || '';
+    $('programInput').value = admin.settings.program || '';
     renderSummary(st);
   }
 
@@ -732,7 +781,7 @@
       };
     });
     var schools = $('schoolsInput').value.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
-    return { criteria: crit, schools: schools };
+    return { criteria: crit, schools: schools, university: $('universityInput').value.trim(), program: $('programInput').value.trim() };
   }
 
   $('criteriaList').addEventListener('input', function(e){
@@ -763,7 +812,7 @@
     store.saveSettings(settings).then(function(){
       admin.settings = settings;
       $('settingsMsg').textContent = 'Réglages enregistrés';
-      loadSchools();
+      applyConfig(settings);
     }).catch(function(err){
       $('settingsMsg').textContent = 'Échec : ' + err.message;
     }).then(function(){ btn.disabled = false; });
@@ -780,14 +829,14 @@
     pairs.forEach(function(p){ load[p.parrainId] = (load[p.parrainId]||0)+1; matched[p.filleulId] = true; });
     var totalCap = parrains.reduce(function(n, p){ return n + M.capacityOf(p); }, 0);
     var unmatched = filleuls.filter(function(f){ return !matched[f.id]; });
-    var schools = {};
-    admin.students.forEach(function(s){ if (s.school) schools[M.norm(s.school)] = 1; });
+    var regions = {};
+    admin.students.forEach(function(s){ if (s.region) regions[M.norm(s.region)] = 1; });
 
     $('stats').innerHTML = [
       [filleuls.length, 'Filleul·es (L1)'],
       [parrains.length, 'Parrains / marraines'],
       [totalCap, 'Places de parrainage'],
-      [Object.keys(schools).length, 'Écoles représentées'],
+      [Object.keys(regions).length, "Régions d'origine"],
       [pairs.length, 'Binômes formés']
     ].map(function(s){ return '<div class="stat"><div class="v">'+s[0]+'</div><div class="k">'+s[1]+'</div></div>'; }).join('');
 
@@ -804,7 +853,10 @@
         '<div class="pair-people">' + personBlock(p, 'parrain') + '<div class="link" aria-hidden="true">↔</div>' + personBlock(f, 'filleul') + '</div>' +
         reasonsHtml(c) +
         '<div class="pair-foot"><span class="score">Score : ' + c.score + '</span>' +
-          '<button class="btn ghost small" data-unpair="'+escapeHtml(pr.parrainId + '|' + pr.filleulId)+'" type="button">Dissoudre</button></div>' +
+          '<span class="pair-actions">' +
+          '<a class="btn small" href="'+escapeHtml(announce(p, f, 'parrain'))+'" target="_blank" rel="noopener" title="Envoyer le binôme au parrain sur WhatsApp">WhatsApp parrain</a>' +
+          '<a class="btn small" href="'+escapeHtml(announce(f, p, 'filleul'))+'" target="_blank" rel="noopener" title="Envoyer le binôme au filleul sur WhatsApp">WhatsApp filleul</a>' +
+          '<button class="btn ghost small" data-unpair="'+escapeHtml(pr.parrainId + '|' + pr.filleulId)+'" type="button">Dissoudre</button></span></div>' +
       '</article>';
     }).join('') : '<p class="muted">Aucun binôme pour l\'instant. Règle les critères puis clique sur « Lancer le bot », ou associe les filleul·es à la main ci-dessous.</p>';
 
@@ -816,7 +868,7 @@
       $('unmatchedList').innerHTML = '<p class="muted">Tous les filleul·es ont un binôme.</p>';
     } else {
       $('unmatchedList').innerHTML = (available.length ? '' : '<p class="muted">Plus aucune place chez les parrains : il faut recruter d\'autres parrains ou augmenter leur nombre de filleul·es.</p>') +
-        '<div class="table-wrap"><table><thead><tr><th>Filleul·e</th><th>École</th><th>Provenance</th><th>Associer à</th></tr></thead><tbody>' +
+        '<div class="table-wrap"><table><thead><tr><th>Filleul·e</th><th>Commune</th><th>Provenance</th><th>Associer à</th></tr></thead><tbody>' +
         unmatched.map(function(f){
           var opts = available.map(function(p){ return { p:p, c:M.score(p, f, st) }; })
             .sort(function(a,b){ return (b.c.ok - a.c.ok) || (b.c.score - a.c.score); })
@@ -824,30 +876,41 @@
               var tag = o.c.ok ? o.c.score : 'incompatible : ' + o.c.blockers.join(', ');
               return '<option value="'+escapeHtml(o.p.id)+'">'+escapeHtml(fullName(o.p))+' ('+escapeHtml(tag)+')</option>';
             }).join('');
-          return '<tr><td>'+escapeHtml(fullName(f))+'<div class="sub">'+escapeHtml(f.email)+'</div></td>' +
-            '<td>'+escapeHtml(f.school)+'<div class="sub">'+escapeHtml(f.program)+'</div></td>' +
-            '<td>'+escapeHtml(origin(f))+'</td>' +
+          return '<tr><td>'+escapeHtml(fullName(f))+'<div class="sub">'+escapeHtml(f.phone)+'</div></td>' +
+            '<td>'+escapeHtml(f.residence)+'</td>' +
+            '<td>'+escapeHtml(origin(f))+'<div class="sub">'+escapeHtml(schooling(f))+'</div></td>' +
             '<td>'+(available.length ? '<select data-assign="'+escapeHtml(f.id)+'" aria-label="Choisir un parrain pour '+escapeHtml(fullName(f))+'"><option value="">Choisir…</option>'+opts+'</select>' : '—')+'</td></tr>';
         }).join('') + '</tbody></table></div>';
     }
 
     $('allCount').textContent = admin.students.length ? '· ' + admin.students.length : '';
     $('allList').innerHTML = admin.students.length ?
-      '<div class="table-wrap"><table><thead><tr><th>Nom</th><th>Rôle</th><th>École</th><th>Provenance</th><th>Contact</th><th></th></tr></thead><tbody>' +
+      '<div class="table-wrap"><table><thead><tr><th>Nom</th><th>Rôle</th><th>Commune</th><th>Provenance</th><th>Contact</th><th></th></tr></thead><tbody>' +
       admin.students.slice().sort(function(a,b){ return a.role.localeCompare(b.role) || fullName(a).localeCompare(fullName(b)); }).map(function(s){
         var isP = s.role === 'parrain';
         var roleTxt = isP ? 'Parrain · ' + escapeHtml(s.level) + ' · ' + (load[s.id]||0) + '/' + M.capacityOf(s) : 'Filleul·e · L1';
         return '<tr><td>'+escapeHtml(fullName(s))+(s.notes ? '<div class="sub">'+escapeHtml(s.notes)+'</div>' : '')+'</td>' +
           '<td><span class="role-dot" style="background:var(--'+(isP?'parrain':'filleul')+')"></span>'+roleTxt+'</td>' +
-          '<td>'+escapeHtml(s.school)+'<div class="sub">'+escapeHtml(s.program)+'</div></td>' +
-          '<td>'+escapeHtml(origin(s))+'<div class="sub">'+escapeHtml((s.languages||[]).join(', '))+'</div></td>' +
-          '<td><a href="mailto:'+escapeHtml(s.email)+'">'+escapeHtml(s.email)+'</a>'+(s.phone ? '<div class="sub">'+escapeHtml(s.phone)+'</div>' : '')+'</td>' +
+          '<td>'+escapeHtml(s.residence)+'</td>' +
+          '<td>'+escapeHtml(origin(s))+'<div class="sub">'+escapeHtml(schooling(s))+'</div><div class="sub">'+escapeHtml((s.languages||[]).join(', '))+'</div></td>' +
+          '<td><a href="'+waLink(s.phone)+'" target="_blank" rel="noopener">'+escapeHtml(s.phone)+'</a>'+(s.email ? '<div class="sub"><a href="mailto:'+escapeHtml(s.email)+'">'+escapeHtml(s.email)+'</a></div>' : '')+'</td>' +
           '<td><button class="btn danger small" data-remove="'+escapeHtml(s.id)+'" type="button">Retirer</button></td></tr>';
       }).join('') + '</tbody></table></div>'
       : '<p class="muted">Aucune inscription pour l\'instant. Partage le formulaire pour recueillir les inscriptions.</p>';
   }
 
-  function origin(s){ return [s.city, s.country].filter(Boolean).join(', '); }
+  function origin(s){
+    var region = s.region && M.norm(s.region).indexOf(M.norm(s.city) || '\u0000') === -1 ? s.region : '';
+    return [s.city, region].filter(Boolean).join(', ');
+  }
+  // Lien WhatsApp avec un message prêt à envoyer pour annoncer le binôme.
+  function announce(to, other, role){
+    var text = role === 'parrain'
+      ? 'Bonjour ' + to.firstName + ', merci pour ton engagement dans le parrainage ! Ton ou ta filleul·e est ' + fullName(other) + ' (L1), joignable sur WhatsApp au ' + other.phone + '. Écris-lui pour te présenter.'
+      : 'Bonjour ' + to.firstName + ', bienvenue en L1 ! Ton parrain ou ta marraine est ' + fullName(other) + ' (' + other.level + '), joignable sur WhatsApp au ' + other.phone + '. N\'hésite pas à lui écrire.';
+    return waLink(to.phone) + '?text=' + encodeURIComponent(text);
+  }
+  function schooling(s){ return [s.highschool, s.bac ? 'BAC ' + s.bac : ''].filter(Boolean).join(' · '); }
 
   function reasonsHtml(c){
     var items = c.reasons.map(function(r){ return '<span'+(r.points < 0 ? ' class="neg"' : '')+'>'+escapeHtml(r.label)+'</span>'; });
@@ -858,9 +921,10 @@
   function personBlock(s, role){
     return '<div class="who '+role+'"><div class="tag">'+(role === 'parrain' ? 'Parrain · ' + escapeHtml(s.level) : 'Filleul·e · L1')+'</div>' +
       '<div class="nm">'+escapeHtml(fullName(s))+'</div>' +
-      '<div class="sub">'+escapeHtml([s.school, s.program].filter(Boolean).join(' · '))+'</div>' +
-      (origin(s) ? '<div class="sub">'+escapeHtml(origin(s))+'</div>' : '') +
-      '<div class="sub"><a href="mailto:'+escapeHtml(s.email)+'">'+escapeHtml(s.email)+'</a></div></div>';
+      (s.residence ? '<div class="sub">Habite à '+escapeHtml(s.residence)+'</div>' : '') +
+      (origin(s) ? '<div class="sub">Origine : '+escapeHtml(origin(s))+'</div>' : '') +
+      (schooling(s) ? '<div class="sub">'+escapeHtml(schooling(s))+'</div>' : '') +
+      '<div class="sub"><a href="'+waLink(s.phone)+'" target="_blank" rel="noopener">'+escapeHtml(s.phone)+'</a></div></div>';
   }
 
   function commitPairs(pairs){
@@ -954,12 +1018,12 @@
 
   $('exportBtn').addEventListener('click', function(){
     var st = criteriaSettings();
-    var rows = [['Parrain / marraine','Email parrain','Niveau','École parrain','Provenance parrain','Filleul·e','Email filleul','École filleul','Provenance filleul','Points communs','Score']];
+    var rows = [['Parrain / marraine','WhatsApp parrain','Niveau','Commune parrain','Provenance parrain','Filleul·e','WhatsApp filleul','Commune filleul','Provenance filleul','Points communs','Score']];
     admin.pairs.forEach(function(pr){
       var p = byId(pr.parrainId), f = byId(pr.filleulId);
       if (!p || !f) return;
       var c = M.score(p, f, st);
-      rows.push([fullName(p), p.email, p.level, p.school, origin(p), fullName(f), f.email, f.school, origin(f),
+      rows.push([fullName(p), p.phone, p.level, p.residence, origin(p), fullName(f), f.phone, f.residence, origin(f),
         c.reasons.map(function(r){ return r.label; }).join(' / '), c.score]);
     });
     var csv = rows.map(function(r){

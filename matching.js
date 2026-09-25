@@ -15,13 +15,14 @@
   'use strict';
 
   var CRITERIA = [
-    { id: 'school', short: 'École',    label: 'École / université',         type: 'text', same: 'Même école',          diff: 'Écoles différentes' },
-    { id: 'country', short: 'Pays',   label: "Pays d'origine",             type: 'text', same: 'Même pays d\'origine', diff: 'Pays d\'origine différents' },
-    { id: 'city', short: 'Ville',      label: "Ville ou région d'origine",  type: 'text', same: 'Même ville / région', diff: 'Villes différentes' },
-    { id: 'program', short: 'Filière',   label: 'Filière',                    type: 'text', same: 'Même filière',        diff: 'Filières différentes' },
-    { id: 'languages', short: 'Langues', label: 'Langues parlées',            type: 'list' },
-    { id: 'interests', short: 'Intérêts', label: "Centres d'intérêt",          type: 'list' },
-    { id: 'mode', short: 'Rencontre',      label: 'Mode de rencontre',          type: 'mode', same: 'Rencontres compatibles', diff: 'Rencontres incompatibles' }
+    { id: 'residence', short: 'Commune',   label: 'Commune de résidence à Abidjan', type: 'text', same: 'Même commune à Abidjan', diff: 'Communes différentes' },
+    { id: 'region',    short: 'Région',    label: "Région d'origine",                type: 'text', same: 'Même région d\'origine', diff: 'Régions d\'origine différentes' },
+    { id: 'city',      short: 'Ville',     label: "Ville d'origine",                 type: 'text', same: 'Même ville d\'origine',  diff: 'Villes d\'origine différentes' },
+    { id: 'highschool', short: 'Lycée',    label: "Lycée d'origine",                 type: 'text', same: 'Même lycée',             diff: 'Lycées différents' },
+    { id: 'bac',       short: 'BAC',       label: 'Série du BAC',                    type: 'text', same: 'Même série de BAC',      diff: 'Séries de BAC différentes' },
+    { id: 'languages', short: 'Langues',   label: 'Langues parlées',                 type: 'list' },
+    { id: 'interests', short: 'Intérêts',  label: "Centres d'intérêt",               type: 'list' },
+    { id: 'mode',      short: 'Rencontre', label: 'Mode de rencontre',               type: 'mode', same: 'Rencontres compatibles', diff: 'Rencontres incompatibles' }
   ];
 
   var RULES = [
@@ -32,13 +33,14 @@
   ];
 
   var DEFAULT_SETTINGS = {
-    school:    { rule: 'same', weight: 8 },
-    country:   { rule: 'same', weight: 5 },
-    city:      { rule: 'same', weight: 3 },
-    program:   { rule: 'same', weight: 6 },
-    languages: { rule: 'same', weight: 2 },
-    interests: { rule: 'same', weight: 2 },
-    mode:      { rule: 'same', weight: 2 }
+    residence:  { rule: 'same', weight: 6 },
+    region:     { rule: 'same', weight: 5 },
+    city:       { rule: 'same', weight: 3 },
+    highschool: { rule: 'same', weight: 4 },
+    bac:        { rule: 'same', weight: 6 },
+    languages:  { rule: 'same', weight: 2 },
+    interests:  { rule: 'same', weight: 2 },
+    mode:       { rule: 'same', weight: 2 }
   };
 
   // Au-delà, les éléments en commun d'une liste ne rapportent plus de points.

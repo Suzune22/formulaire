@@ -12,14 +12,14 @@
 var SHEET_STUDENTS = 'Etudiants';
 var SHEET_PAIRS = 'Binomes';
 var SHEET_SETTINGS = 'Reglages';
-var STUDENT_COLS = ['id', 'createdAt', 'role', 'firstName', 'lastName', 'email', 'phone', 'school', 'level', 'program',
-  'country', 'city', 'languages', 'interests', 'mode', 'capacity', 'notes'];
+var STUDENT_COLS = ['id', 'createdAt', 'role', 'lastName', 'firstName', 'phone', 'email', 'studentId', 'level', 'capacity',
+  'residence', 'region', 'city', 'highschool', 'bac', 'languages', 'interests', 'mode', 'notes'];
 var LIST_COLS = ['languages', 'interests'];
 var PAIR_COLS = ['id', 'parrainId', 'filleulId', 'score', 'createdAt'];
 
 function doGet(e) {
   var p = (e && e.parameter) || {};
-  // Réglages publics : le formulaire en a besoin pour la liste des écoles.
+  // Réglages publics : le formulaire en a besoin (université, filière, lycées).
   if (p.action === 'config') return json_({ ok: true, settings: readSettings_() });
   if (!checkKey_(p.key)) return json_({ ok: false, error: 'Code organisateur invalide' });
   return json_({
@@ -68,16 +68,18 @@ function register_(d) {
   s.createdAt = new Date().toISOString();
   s.role = role;
   s.email = s.email.toLowerCase();
+  s.phone = normalizePhone_(d.phone);
   s.level = role === 'filleul' ? 'L1' : s.level;
   s.capacity = role === 'parrain' ? String(Math.min(3, Math.max(1, Number(d.capacity) || 1))) : '0';
 
-  if (!s.firstName || !s.lastName || !s.email || !s.school) {
+  if (!s.firstName || !s.lastName || !s.residence) {
     return { ok: false, error: 'Champs obligatoires manquants' };
   }
+  if (!s.phone) return { ok: false, error: 'Numéro WhatsApp ivoirien invalide' };
   var dup = readRows_(SHEET_STUDENTS, STUDENT_COLS).some(function (x) {
-    return x.email.toLowerCase() === s.email && x.role === s.role;
+    return x.phone === s.phone && x.role === s.role;
   });
-  if (dup) return { ok: false, error: 'Cette adresse email est déjà inscrite avec ce rôle.' };
+  if (dup) return { ok: false, error: 'Ce numéro WhatsApp est déjà inscrit avec ce rôle.' };
 
   sheet_(SHEET_STUDENTS, STUDENT_COLS).appendRow(STUDENT_COLS.map(function (c) { return s[c]; }));
   return { ok: true };
@@ -93,6 +95,15 @@ function parseStudent_(s) {
   s.capacity = Number(s.capacity) || 0;
   LIST_COLS.forEach(function (c) { s[c] = s[c] ? s[c].split(/\s*;\s*/) : []; });
   return s;
+}
+
+// Numéro ivoirien : 10 chiffres, avec ou sans l'indicatif +225.
+function normalizePhone_(raw) {
+  var d = String(raw || '').replace(/\D/g, '');
+  if (d.length === 13 && d.indexOf('225') === 0) d = d.slice(3);
+  if (d.length === 15 && d.indexOf('00225') === 0) d = d.slice(5);
+  if (!/^(01|05|07|21|25|27)\d{8}$/.test(d)) return '';
+  return '+225 ' + d.replace(/(\d{2})(?=\d)/g, '$1 ');
 }
 
 function checkKey_(key) {

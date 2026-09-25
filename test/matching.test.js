@@ -11,23 +11,23 @@ const only = (id, rule, weight = 5) => {
   return s;
 };
 
-test('même école rapporte le poids du critère, sans tenir compte des accents ni de la casse', () => {
-  const r = M.score(p('a', { school: 'Université Paris-Cité' }), f('b', { school: 'universite paris cite' }), only('school', 'same', 8));
+test('même lycée rapporte le poids du critère, sans tenir compte des accents ni de la casse', () => {
+  const r = M.score(p('a', { highschool: 'Lycée Sainte-Marie de Cocody' }), f('b', { highschool: 'lycee sainte marie de cocody' }), only('highschool', 'same', 8));
   assert.strictEqual(r.score, 8);
-  assert.deepStrictEqual(r.reasons.map(x => x.label), ['Même école']);
+  assert.deepStrictEqual(r.reasons.map(x => x.label), ['Même lycée']);
 });
 
-test('« de préférence différent » récompense des provenances différentes', () => {
-  const s = only('country', 'different', 4);
-  assert.strictEqual(M.score(p('a', { country: 'Sénégal' }), f('b', { country: 'France' }), s).score, 4);
-  assert.strictEqual(M.score(p('a', { country: 'France' }), f('b', { country: 'France' }), s).score, 0);
+test("« de préférence différent » récompense des régions d'origine différentes", () => {
+  const s = only('region', 'different', 4);
+  assert.strictEqual(M.score(p('a', { region: 'Poro' }), f('b', { region: 'Gbêkê' }), s).score, 4);
+  assert.strictEqual(M.score(p('a', { region: 'Gbêkê' }), f('b', { region: 'Gbêkê' }), s).score, 0);
 });
 
 test('un critère obligatoire non respecté interdit le binôme', () => {
-  const s = only('school', 'required');
-  assert.strictEqual(M.score(p('a', { school: 'A' }), f('b', { school: 'B' }), s).ok, false);
-  assert.strictEqual(M.score(p('a', { school: 'A' }), f('b', {}), s).ok, false);
-  assert.strictEqual(M.score(p('a', { school: 'A' }), f('b', { school: 'a' }), s).ok, true);
+  const s = only('residence', 'required');
+  assert.strictEqual(M.score(p('a', { residence: 'A' }), f('b', { residence: 'B' }), s).ok, false);
+  assert.strictEqual(M.score(p('a', { residence: 'A' }), f('b', {}), s).ok, false);
+  assert.strictEqual(M.score(p('a', { residence: 'A' }), f('b', { residence: 'a' }), s).ok, true);
 });
 
 test('les listes comptent les éléments communs, plafonnés à 3', () => {
@@ -53,11 +53,11 @@ test('le bot ne laisse personne de côté pour un seul meilleur couple', () => {
 });
 
 test('le bot respecte les obligations et la capacité des parrains', () => {
-  const settings = only('school', 'required');
+  const settings = only('residence', 'required');
   const students = [
-    p('P1', { school: 'A', capacity: 2 }),
-    p('P2', { school: 'B' }),
-    f('F1', { school: 'A' }), f('F2', { school: 'A' }), f('F3', { school: 'A' }), f('F4', { school: 'B' }),
+    p('P1', { residence: 'A', capacity: 2 }),
+    p('P2', { residence: 'B' }),
+    f('F1', { residence: 'A' }), f('F2', { residence: 'A' }), f('F3', { residence: 'A' }), f('F4', { residence: 'B' }),
   ];
   const r = M.match(students, [], settings);
   const pairs = Object.fromEntries(r.added.map(x => [x.filleulId, x.parrainId]));
@@ -67,24 +67,24 @@ test('le bot respecte les obligations et la capacité des parrains', () => {
 });
 
 test('les binômes existants sont conservés, sauf en recalcul complet', () => {
-  const students = [p('P1', { school: 'A' }), p('P2', { school: 'B' }), f('F1', { school: 'B' })];
+  const students = [p('P1', { residence: 'A' }), p('P2', { residence: 'B' }), f('F1', { residence: 'B' })];
   const existing = [{ parrainId: 'P1', filleulId: 'F1' }];
-  assert.strictEqual(M.match(students, existing, only('school', 'same')).added.length, 0);
-  const r = M.match(students, existing, only('school', 'same'), { reset: true });
+  assert.strictEqual(M.match(students, existing, only('residence', 'same')).added.length, 0);
+  const r = M.match(students, existing, only('residence', 'same'), { reset: true });
   assert.deepStrictEqual(r.added.map(x => x.parrainId), ['P2']);
 });
 
 test('les filleul·es sont répartis entre les parrains avant de remplir un même parrain', () => {
   const students = [p('P1', { capacity: 3 }), p('P2', { capacity: 3 }), f('F1'), f('F2')];
-  const r = M.match(students, [], only('school', 'same'));
+  const r = M.match(students, [], only('residence', 'same'));
   assert.deepStrictEqual(r.added.map(x => x.parrainId).sort(), ['P1', 'P2']);
 });
 
 test('grand volume : 300 filleul·es et 150 parrains en moins de 5 s', () => {
-  const schools = ['A', 'B', 'C', 'D'], countries = ['FR', 'SN', 'MA', 'CI', 'CM'];
+  const residences = ['Marcory', 'Koumassi', 'Yopougon', 'Cocody'], countries = ['Poro', 'Gbêkê', 'San-Pédro', 'Tonkpi', 'Abidjan'];
   const students = [];
-  for (let i = 0; i < 150; i++) students.push(p('P' + i, { capacity: 2, school: schools[i % 4], country: countries[i % 5] }));
-  for (let i = 0; i < 300; i++) students.push(f('F' + i, { school: schools[i % 4], country: countries[(i * 7) % 5] }));
+  for (let i = 0; i < 150; i++) students.push(p('P' + i, { capacity: 2, residence: residences[i % 4], region: countries[i % 5] }));
+  for (let i = 0; i < 300; i++) students.push(f('F' + i, { residence: residences[i % 4], region: countries[(i * 7) % 5] }));
   const t = Date.now();
   const r = M.match(students, [], M.DEFAULT_SETTINGS);
   assert.ok(Date.now() - t < 5000);
