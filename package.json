@@ -1,0 +1,9 @@
+{
+  "name": "parrainage",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Formulaire de parrainage L1 et bot de formation des binômes",
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}
