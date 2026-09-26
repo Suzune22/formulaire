@@ -1,0 +1,1071 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Parrainage L1</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --ink:#20241f;
+    --ink-soft:#565f52;
+    --paper:#eef1ea;
+    --surface:#ffffff;
+    --surface-2:#e4e8dd;
+    --border:#d3d9c8;
+    --accent:#8a6a34;
+    --accent-ink:#3d2f16;
+    --accent-2:#3e6b63;
+    --danger:#a1483a;
+    --filleul:#3e6b63;
+    --parrain:#8a6a34;
+    --shadow: 0 1px 2px rgba(32,36,31,.06), 0 6px 20px -8px rgba(32,36,31,.18);
+    --radius: 14px;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ink:#e9ece3;
+      --ink-soft:#a7ae9c;
+      --paper:#181c17;
+      --surface:#20241d;
+      --surface-2:#2a2f24;
+      --border:#3a4133;
+      --accent:#d0a75c;
+      --accent-ink:#2a2114;
+      --accent-2:#7fb0a6;
+      --danger:#e18375;
+      --filleul:#7fb0a6;
+      --parrain:#d0a75c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 26px -10px rgba(0,0,0,.55);
+    }
+  }
+
+  *{box-sizing:border-box;}
+  html,body{ margin:0; }
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:"Public Sans", ui-sans-serif, system-ui, sans-serif;
+    padding-inline:16px; padding-block:0 32px;
+  }
+  h1,h2,h3{ font-family:"Fraunces", Georgia, serif; text-wrap:balance; }
+  a{ color:inherit; }
+  [hidden]{ display:none !important; }
+  code{ font-size:.85em; background:var(--surface-2); padding:1px 5px; border-radius:5px; }
+
+  .wrap{ max-width:1080px; margin:0 auto; }
+
+  header.top{
+    position:sticky; top:0; background:var(--paper); z-index:5;
+    padding-block:18px 0; border-bottom:1px solid var(--border); margin-bottom:22px;
+  }
+  .top-row{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .brand h1{ font-size:1.5rem; font-weight:700; margin:0; letter-spacing:-.01em; }
+  .brand p{ margin:2px 0 0; font-size:.85rem; color:var(--ink-soft); }
+  .tabs{ display:flex; gap:4px; margin-top:14px; }
+  .tab{
+    font:inherit; font-weight:600; font-size:.88rem; background:none; border:none; color:var(--ink-soft);
+    padding:10px 14px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px;
+  }
+  .tab[aria-selected="true"]{ color:var(--ink); border-bottom-color:var(--accent); }
+
+  .btn{
+    font:inherit; font-weight:600; font-size:.85rem;
+    border:1px solid var(--border); background:var(--surface); color:var(--ink);
+    padding:9px 16px; border-radius:999px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+    text-decoration:none; transition:transform .1s ease, background .15s ease;
+  }
+  .btn:hover{ background:var(--surface-2); }
+  .btn:active{ transform:scale(.97); }
+  .btn.primary{ background:var(--accent); color:var(--accent-ink); border-color:transparent; }
+  .btn.primary:hover{ filter:brightness(1.06); }
+  .btn.danger{ color:var(--danger); border-color:var(--danger); background:transparent; }
+  .btn.ghost{ background:transparent; border-color:transparent; padding:6px 10px; }
+  .btn.small{ padding:6px 12px; font-size:.78rem; }
+  .btn:disabled{ opacity:.5; cursor:default; }
+  .btn:focus-visible, .tab:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible{
+    outline:2px solid var(--accent-2); outline-offset:2px;
+  }
+
+  /* ---------- Formulaire ---------- */
+  .form-card{
+    max-width:660px; margin:0 auto; background:var(--surface); border:1px solid var(--border);
+    border-radius:18px; box-shadow:var(--shadow); padding:24px;
+  }
+  .form-card > div > h2{ margin:0 0 4px; font-size:1.35rem; }
+  .lead{ margin:0 0 20px; color:var(--ink-soft); font-size:.9rem; line-height:1.5; }
+  form.signup{ display:flex; flex-direction:column; gap:18px; }
+  fieldset{ border:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px; min-width:0; }
+  legend{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:1.02rem; padding:0; margin-bottom:10px; }
+  .field{ display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .field > label, .field > .label{ font-size:.75rem; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em; }
+  .field .opt{ text-transform:none; font-weight:400; }
+  .field .hint{ font-size:.78rem; color:var(--ink-soft); }
+  .field input, .field select, .field textarea{
+    font:inherit; font-size:.92rem; padding:9px 11px; border-radius:9px; border:1px solid var(--border);
+    background:var(--paper); color:var(--ink); width:100%;
+  }
+  .field textarea{ resize:vertical; min-height:70px; }
+  .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+  .role-pick{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .role-pick label{
+    position:relative; display:flex; flex-direction:column; gap:3px; padding:14px; border-radius:12px; cursor:pointer;
+    border:1.5px solid var(--border); background:var(--paper);
+  }
+  .role-pick input{ position:absolute; opacity:0; pointer-events:none; }
+  .role-pick strong{ font-size:.95rem; }
+  .role-pick span{ font-size:.8rem; color:var(--ink-soft); }
+  .role-pick label:has(input:checked){ border-color:var(--accent); background:var(--surface); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+  .role-pick label:has(input:focus-visible){ outline:2px solid var(--accent-2); outline-offset:2px; }
+
+  .picks{ display:flex; flex-wrap:wrap; gap:7px; }
+  .pick{ position:relative; }
+  .pick input{ position:absolute; opacity:0; pointer-events:none; }
+  .pick span{
+    display:inline-block; font-size:.8rem; font-weight:600; padding:6px 12px; border-radius:999px; cursor:pointer;
+    border:1px solid var(--border); background:var(--paper); color:var(--ink-soft);
+  }
+  .pick input:checked + span{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .pick input:focus-visible + span{ outline:2px solid var(--accent-2); outline-offset:2px; }
+
+  .consent{ display:flex; gap:9px; align-items:flex-start; font-size:.84rem; color:var(--ink-soft); line-height:1.45; }
+  .consent input{ margin-top:3px; }
+  .form-actions{ display:flex; justify-content:flex-end; gap:8px; }
+  .form-msg{ font-size:.87rem; padding:12px 14px; border-radius:10px; }
+  .form-msg.err{ background:color-mix(in srgb, var(--danger) 12%, var(--surface)); color:var(--danger); }
+
+  .success{ text-align:center; padding:26px 10px; }
+  .success h2{ margin:0 0 8px; }
+  .success p{ color:var(--ink-soft); margin:0 0 18px; }
+
+  /* ---------- Organisation ---------- */
+  .banner{
+    background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:12px 16px;
+    font-size:.86rem; color:var(--ink-soft); margin-bottom:16px; line-height:1.5;
+  }
+  .banner.err{ color:var(--danger); }
+  .banner.ok{ color:var(--ink); border-color:var(--accent-2); }
+  .key-row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; max-width:460px; }
+  .key-row input{
+    flex:1 1 180px; font:inherit; font-size:.9rem; padding:9px 12px; border-radius:999px;
+    border:1px solid var(--border); background:var(--surface); color:var(--ink);
+  }
+
+  .stats{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:10px; margin-bottom:16px; }
+  .stat{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 14px; }
+  .stat .v{ font-family:"Fraunces", Georgia, serif; font-size:1.6rem; font-weight:600; font-variant-numeric:tabular-nums; }
+  .stat .k{ font-size:.78rem; color:var(--ink-soft); }
+
+  details.bot{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:16px;
+  }
+  details.bot > summary{
+    cursor:pointer; padding:14px 16px; font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:1.05rem;
+    list-style:none; display:flex; justify-content:space-between; gap:10px; align-items:baseline;
+  }
+  details.bot > summary::-webkit-details-marker{ display:none; }
+  details.bot > summary::after{ content:"Afficher"; font-family:"Public Sans", sans-serif; font-size:.8rem; font-weight:600; color:var(--accent-2); }
+  details.bot[open] > summary::after{ content:"Masquer"; }
+  details.bot > summary .sum{ font-family:"Public Sans", sans-serif; font-weight:400; font-size:.82rem; color:var(--ink-soft); flex:1; }
+  .bot-body{ padding:0 16px 16px; display:flex; flex-direction:column; gap:14px; }
+  .crit{ display:grid; grid-template-columns:minmax(150px,1.2fr) minmax(170px,1fr) minmax(150px,1fr); gap:10px; align-items:center; padding:10px 0; border-top:1px solid var(--border); }
+  .crit .name{ font-weight:600; font-size:.9rem; }
+  .crit select{ font:inherit; font-size:.85rem; padding:7px 9px; border-radius:8px; border:1px solid var(--border); background:var(--paper); color:var(--ink); width:100%; }
+  .weight{ display:flex; align-items:center; gap:8px; font-size:.82rem; color:var(--ink-soft); }
+  .weight input{ flex:1; accent-color:var(--accent); min-width:0; }
+  .weight output{ font-variant-numeric:tabular-nums; width:2ch; text-align:right; color:var(--ink); font-weight:600; }
+  .weight.off{ opacity:.4; }
+  .bot-body textarea{ font:inherit; font-size:.88rem; padding:9px 11px; border-radius:9px; border:1px solid var(--border); background:var(--paper); color:var(--ink); width:100%; min-height:90px; resize:vertical; }
+  .bot-actions{ display:flex; gap:8px; justify-content:flex-end; align-items:center; flex-wrap:wrap; }
+
+  .toolbar{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
+  .toolbar .spacer{ flex:1; }
+
+  section.block{ margin-bottom:28px; }
+  section.block > h2{ font-size:1.15rem; margin:0 0 10px; display:flex; align-items:baseline; gap:8px; }
+  section.block > h2 .n{ font-family:"Public Sans", sans-serif; font-size:.8rem; color:var(--ink-soft); font-weight:600; }
+  .muted{ color:var(--ink-soft); font-size:.87rem; }
+
+  .pairs{ display:grid; grid-template-columns:repeat(auto-fill, minmax(320px,1fr)); gap:12px; }
+  .pair{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:14px 16px; display:flex; flex-direction:column; gap:10px;
+  }
+  .pair-people{ display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:start; }
+  .pair-people .link{ color:var(--ink-soft); padding-top:16px; }
+  .who .tag{ font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+  .who.parrain .tag{ color:var(--parrain); }
+  .who.filleul .tag{ color:var(--filleul); }
+  .who .nm{ font-weight:600; font-size:.95rem; margin-top:2px; overflow-wrap:anywhere; }
+  .who .sub{ font-size:.78rem; color:var(--ink-soft); overflow-wrap:anywhere; }
+  .why{ display:flex; flex-wrap:wrap; gap:5px; }
+  .why span{ font-size:.72rem; padding:3px 8px; border-radius:999px; background:var(--surface-2); color:var(--ink-soft); }
+  .why span.neg{ color:var(--danger); }
+  .pair-foot{ display:flex; justify-content:space-between; align-items:center; gap:8px; border-top:1px dashed var(--border); padding-top:8px; }
+  .pair-actions{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+  .score{ font-size:.78rem; color:var(--ink-soft); font-variant-numeric:tabular-nums; }
+
+  table{ width:100%; border-collapse:collapse; font-size:.86rem; }
+  .table-wrap{ overflow-x:auto; background:var(--surface); border:1px solid var(--border); border-radius:12px; }
+  th, td{ text-align:left; padding:9px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th{ font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); font-weight:600; background:var(--surface-2); }
+  tr:last-child td{ border-bottom:none; }
+  td .sub{ font-size:.78rem; color:var(--ink-soft); }
+  td select{ font:inherit; font-size:.82rem; padding:6px 8px; border-radius:8px; border:1px solid var(--border); background:var(--paper); color:var(--ink); max-width:240px; }
+  .role-dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+
+  dialog{
+    border:none; border-radius:18px; padding:0; background:var(--surface); color:var(--ink);
+    box-shadow:var(--shadow); width:min(420px, 92vw);
+  }
+  dialog::backdrop{ background:rgba(20,22,18,.45); }
+  .sheet{ padding:22px; display:flex; flex-direction:column; gap:12px; align-items:center; text-align:center; }
+  .sheet h2{ margin:0; font-size:1.2rem; }
+  .qr-canvas{ padding:14px; background:#fff; border-radius:12px; border:1px solid var(--border); }
+  .qr-canvas img, .qr-canvas canvas{ display:block; }
+  .link-row{ display:flex; gap:8px; width:100%; }
+  .link-row input{ flex:1; min-width:0; font:inherit; font-size:.78rem; padding:8px 10px; border-radius:8px; border:1px solid var(--border); background:var(--paper); color:var(--ink-soft); }
+
+  .spinner{
+    width:14px; height:14px; border-radius:50%; border:2px solid var(--border); border-top-color:var(--accent);
+    animation:spin .7s linear infinite; display:inline-block; vertical-align:middle;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  @media (max-width:620px){
+    .crit{ grid-template-columns:1fr 1fr; }
+    .crit .name{ grid-column:1 / -1; }
+  }
+  @media (max-width:520px){
+    .two-col, .role-pick{ grid-template-columns:1fr; }
+    .form-card{ padding:18px; }
+    .pairs{ grid-template-columns:1fr; }
+    .pair-people{ grid-template-columns:1fr; }
+    .pair-people .link{ padding-top:0; }
+    .crit{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="top-row">
+      <div class="brand">
+        <h1>Parrainage L1</h1>
+        <p id="subtitle">Campus de Marcory · Abidjan</p>
+      </div>
+      <button class="btn" id="shareBtn" type="button">Partager le formulaire</button>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-inscription" aria-controls="view-inscription" aria-selected="true" type="button">Inscription</button>
+      <button class="tab" role="tab" id="tab-binomes" aria-controls="view-binomes" aria-selected="false" type="button">Binômes</button>
+    </div>
+  </header>
+
+  <!-- ================= Inscription ================= -->
+  <main id="view-inscription" role="tabpanel" aria-labelledby="tab-inscription">
+    <div class="form-card">
+      <div id="formWrap">
+        <h2>Inscription au parrainage</h2>
+        <p class="lead" id="lead">Tu viens d'arriver en L1 sur le campus de Marcory et tu veux un·e aîné·e de la filière pour t'aider à prendre tes marques ? Ou tu es en L2 ou plus et tu veux accompagner un·e nouvel·le ? Inscris-toi : les binômes sont formés selon ta commune, ta région d'origine, ton lycée, ta série de BAC et tes centres d'intérêt.</p>
+
+        <form class="signup" id="signupForm" novalidate>
+          <fieldset>
+            <legend>Je m'inscris comme…</legend>
+            <div class="role-pick">
+              <label><input type="radio" name="role" value="filleul" checked><strong>Filleul·e</strong><span>Je suis en L1 et je cherche un parrain ou une marraine</span></label>
+              <label><input type="radio" name="role" value="parrain"><strong>Parrain / Marraine</strong><span>Je suis en L2 ou plus et je veux accompagner un·e L1</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Mes informations</legend>
+            <div class="two-col">
+              <div class="field"><label for="f-lastName">Nom</label><input id="f-lastName" autocomplete="family-name" required></div>
+              <div class="field"><label for="f-firstName">Prénoms</label><input id="f-firstName" autocomplete="given-name" required></div>
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label for="f-phone">Numéro WhatsApp</label>
+                <input id="f-phone" type="tel" autocomplete="tel" inputmode="tel" required placeholder="07 00 00 00 00">
+                <span class="hint">Numéro ivoirien à 10 chiffres. Ton binôme te contactera ici.</span>
+              </div>
+              <div class="field"><label for="f-email">Email <span class="opt">(facultatif)</span></label><input id="f-email" type="email" autocomplete="email"></div>
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label for="f-level">Niveau</label>
+                <select id="f-level"></select>
+              </div>
+              <div class="field">
+                <label for="f-studentId">Matricule <span class="opt">(facultatif)</span></label>
+                <input id="f-studentId" autocomplete="off">
+              </div>
+            </div>
+            <div class="field" id="capacityField" hidden>
+              <label for="f-capacity">Nombre de filleul·es que je peux suivre</label>
+              <select id="f-capacity">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>À Abidjan</legend>
+            <div class="field">
+              <label for="f-residence">Commune où j'habite</label>
+              <select id="f-residence" required></select>
+              <span class="hint">Pour former des binômes qui peuvent se voir facilement autour du campus de Marcory.</span>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>D'où je viens</legend>
+            <div class="two-col">
+              <div class="field">
+                <label for="f-region">Région d'origine</label>
+                <select id="f-region"></select>
+              </div>
+              <div class="field">
+                <label for="f-city">Ville d'origine</label>
+                <input id="f-city" list="cityList" placeholder="Ex. Bouaké, Korhogo, Daloa…">
+                <datalist id="cityList"></datalist>
+              </div>
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label for="f-highschool">Lycée d'origine</label>
+                <input id="f-highschool" list="highschoolList" placeholder="Ex. Lycée classique d'Abidjan">
+                <datalist id="highschoolList"></datalist>
+              </div>
+              <div class="field">
+                <label for="f-bac">Série du BAC</label>
+                <select id="f-bac"></select>
+              </div>
+            </div>
+            <div class="field">
+              <span class="label">Langues parlées</span>
+              <div class="picks" id="languagePicks"></div>
+              <input id="f-otherLanguages" placeholder="Autres langues, séparées par des virgules" aria-label="Autres langues">
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Pour bien s'entendre</legend>
+            <div class="field">
+              <span class="label">Centres d'intérêt</span>
+              <div class="picks" id="interestPicks"></div>
+            </div>
+            <div class="field">
+              <span class="label">Rencontres de préférence</span>
+              <div class="picks" id="modePicks"></div>
+            </div>
+            <div class="field">
+              <label for="f-notes" id="notesLabel">Ce que j'attends du parrainage</label>
+              <textarea id="f-notes" placeholder="Méthodes de travail, emploi du temps, logement, transport, orientation…"></textarea>
+            </div>
+          </fieldset>
+
+          <label class="consent"><input type="checkbox" id="f-consent" required> J'accepte que mes réponses servent à former les binômes, et que mon nom et mon numéro WhatsApp soient transmis à mon binôme et aux organisateurs du parrainage.</label>
+
+          <div class="form-msg err" id="formError" hidden></div>
+          <div class="form-actions">
+            <button type="submit" class="btn primary" id="submitBtn">Envoyer mon inscription</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="success" id="successWrap" hidden>
+        <h2>Inscription enregistrée</h2>
+        <p id="successMsg"></p>
+        <button class="btn" type="button" id="againBtn">Inscrire une autre personne</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ================= Binômes (organisateurs) ================= -->
+  <main id="view-binomes" role="tabpanel" aria-labelledby="tab-binomes" hidden>
+    <div class="banner" id="modeBanner" hidden></div>
+
+    <div id="lockPanel" hidden>
+      <div class="banner">Cet espace est réservé aux organisateurs du parrainage. Saisis le code organisateur pour voir les inscrits, régler le bot et former les binômes.</div>
+      <form class="key-row" id="keyForm">
+        <input id="keyInput" type="password" placeholder="Code organisateur" autocomplete="off" aria-label="Code organisateur">
+        <button class="btn primary" type="submit">Accéder</button>
+      </form>
+    </div>
+
+    <div id="adminPanel" hidden>
+      <div class="banner err" id="adminError" hidden></div>
+
+      <div class="stats" id="stats"></div>
+
+      <details class="bot" id="botPanel">
+        <summary>Réglages du bot <span class="sum" id="botSummary"></span></summary>
+        <div class="bot-body">
+          <p class="muted" style="margin:0;">Pour chaque critère, choisis si le bot doit réunir des profils identiques, des profils différents, ou ignorer le critère. Le poids (0 à 10) donne son importance. « Obligatoirement identique » interdit tout binôme qui ne respecte pas le critère.</p>
+          <div id="criteriaList"></div>
+          <div class="two-col">
+            <div class="field">
+              <label for="universityInput">Université (affichée sur le formulaire)</label>
+              <input id="universityInput" placeholder="Nom de l'université">
+            </div>
+            <div class="field">
+              <label for="programInput">Filière (affichée sur le formulaire)</label>
+              <input id="programInput" placeholder="Nom de la filière">
+            </div>
+          </div>
+          <div class="field">
+            <label for="schoolsInput">Lycées proposés dans le formulaire (un par ligne)</label>
+            <textarea id="schoolsInput" placeholder="Lycée classique d'Abidjan&#10;Lycée Sainte-Marie de Cocody&#10;…"></textarea>
+            <span class="hint">Une liste commune évite que le même lycée soit écrit de plusieurs façons, ce qui fausserait le critère « lycée ». Les étudiants peuvent toujours écrire un lycée absent de la liste.</span>
+          </div>
+          <div class="bot-actions">
+            <span class="muted" id="settingsMsg"></span>
+            <button class="btn ghost" type="button" id="defaultsBtn">Valeurs par défaut</button>
+            <button class="btn primary" type="button" id="saveSettingsBtn">Enregistrer les réglages</button>
+          </div>
+        </div>
+      </details>
+
+      <div class="toolbar">
+        <button class="btn primary" id="runBtn" type="button">Lancer le bot</button>
+        <button class="btn" id="rerunBtn" type="button">Tout recalculer</button>
+        <button class="btn" id="exportBtn" type="button">Exporter (CSV)</button>
+        <span class="spacer"></span>
+        <button class="btn" id="reloadBtn" type="button">Actualiser</button>
+        <button class="btn danger" id="resetBtn" type="button">Dissoudre tous les binômes</button>
+      </div>
+      <div class="banner ok" id="botResult" hidden></div>
+
+      <section class="block">
+        <h2>Binômes <span class="n" id="pairsCount"></span></h2>
+        <div class="pairs" id="pairsList"></div>
+      </section>
+
+      <section class="block">
+        <h2>Filleul·es sans binôme <span class="n" id="unmatchedCount"></span></h2>
+        <div id="unmatchedList"></div>
+      </section>
+
+      <section class="block">
+        <h2>Tous les inscrits <span class="n" id="allCount"></span></h2>
+        <div id="allList"></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<dialog id="shareDialog">
+  <div class="sheet">
+    <h2>Partager le formulaire</h2>
+    <p class="muted" style="margin:0;">Affiche ce QR code en amphi ou envoie le lien aux étudiants.</p>
+    <div class="qr-canvas" id="qrCanvas"></div>
+    <div class="link-row">
+      <input id="shareUrl" type="text" readonly aria-label="Lien du formulaire">
+      <button class="btn" id="copyBtn" type="button">Copier</button>
+    </div>
+    <button class="btn primary" id="closeShareBtn" type="button">Fermer</button>
+  </div>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="matching.js"></script>
+<script>
+(function(){
+  // URL de déploiement du script apps-script/Code.gs (voir README.md).
+  // Laisser vide pour un mode démo : les données restent dans ce navigateur.
+  var API_URL = 'https://script.google.com/macros/s/AKfycbzuxixy19RnTwXzS7n46Fj9Zn-4cwdOG7sjZa4zQetWzIVGMB0zBGDgoy2H8Y4h2oe5IA/exec';
+
+  var CAMPUS = 'Campus de Marcory · Abidjan';
+  var COMMUNES = ['Marcory','Koumassi','Treichville','Port-Bouët','Plateau','Adjamé','Attécoubé','Cocody','Yopougon','Abobo','Bingerville','Anyama','Songon','Grand-Bassam','Autre'];
+  var REGIONS = ['District autonome d\'Abidjan','District autonome de Yamoussoukro','Agnéby-Tiassa','Bafing','Bagoué','Bélier','Béré','Bounkani','Cavally','Folon','Gbêkê','Gbôklé','Gôh','Gontougo','Grands-Ponts','Guémon','Hambol','Haut-Sassandra','Iffou','Indénié-Djuablin','Kabadougou','La Mé','Lôh-Djiboua','Marahoué','Moronou','Nawa','N\'Zi','Poro','San-Pédro','Sud-Comoé','Tchologo','Tonkpi','Worodougou','Hors de Côte d\'Ivoire'];
+  var CITIES = ['Abidjan','Bouaké','Daloa','Yamoussoukro','Korhogo','San-Pédro','Man','Gagnoa','Divo','Abengourou','Soubré','Bondoukou','Séguéla','Odienné','Ferkessédougou','Agboville','Dabou','Grand-Bassam','Dimbokro','Bouaflé','Sinfra','Issia','Duékoué','Guiglo','Katiola','Toumodi','Adzopé','Aboisso','Sassandra','Tiassalé'];
+  var BAC_SERIES = ['A1','A2','B','C','D','E','F (technique)','G1','G2','G3','Autre'];
+  var LANGUAGES = ['Français','Anglais','Baoulé','Dioula','Bété','Sénoufo','Agni','Attié','Abbey','Yacouba','Gouro','Guéré','Ébrié','Mooré'];
+  var INTERESTS = ['Football','Basket & autres sports','Musique','Danse','Jeux vidéo','Cinéma & séries','Lecture','Informatique & tech','Entrepreneuriat','Débats & éloquence','Mode & beauté','Cuisine','Religion & spiritualité','Vie associative','Sorties'];
+  var MODES = [{id:'presentiel', label:'Sur le campus de Marcory'}, {id:'distanciel', label:'En ligne (WhatsApp, appel)'}, {id:'les-deux', label:'Peu importe'}];
+  var LEVELS = { filleul:['L1'], parrain:['L2','L3','M1','M2'] };
+
+  var LOCAL_KEY = 'parrainage-abidjan-v1';
+  var ADMIN_KEY_STORE = 'parrainage-admin-key';
+  var M = window.Matching;
+
+  var $ = function(id){ return document.getElementById(id); };
+  function escapeHtml(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+  function fullName(s){ return ((s.firstName||'') + ' ' + (s.lastName||'')).trim() || 'Sans nom'; }
+  function options(list){ return list.map(function(v){ return '<option value="'+escapeHtml(v)+'">'; }).join(''); }
+  function picks(name, list){
+    return list.map(function(v){ return '<label class="pick"><input type="checkbox" name="'+name+'" value="'+escapeHtml(v)+'"><span>'+escapeHtml(v)+'</span></label>'; }).join('');
+  }
+  function selectOptions(list, placeholder){
+    return '<option value="">'+escapeHtml(placeholder)+'</option>' + list.map(function(v){ return '<option>'+escapeHtml(v)+'</option>'; }).join('');
+  }
+  // Numéro ivoirien : 10 chiffres (depuis 2021), avec ou sans l'indicatif +225.
+  function normalizePhone(raw){
+    var d = String(raw || '').replace(/\D/g, '');
+    if (d.length === 13 && d.indexOf('225') === 0) d = d.slice(3);
+    if (d.length === 15 && d.indexOf('00225') === 0) d = d.slice(5);
+    if (!/^(01|05|07|21|25|27)\d{8}$/.test(d)) return '';
+    return '+225 ' + d.replace(/(\d{2})(?=\d)/g, '$1 ');
+  }
+  function waLink(phone){ return 'https://wa.me/' + String(phone || '').replace(/\D/g, ''); }
+  function checked(name){ return Array.prototype.map.call(document.querySelectorAll('input[name="'+name+'"]:checked'), function(i){ return i.value; }); }
+
+  /* ---------------- Stockage ---------------- */
+
+  function readLocal(){
+    try {
+      var db = JSON.parse(localStorage.getItem(LOCAL_KEY) || 'null');
+      if (db && db.students && db.pairs) return db;
+    } catch(e){}
+    return { students: [], pairs: [], settings: {} };
+  }
+  function writeLocal(db){
+    try { localStorage.setItem(LOCAL_KEY, JSON.stringify(db)); return true; } catch(e){ return false; }
+  }
+  function getAdminKey(){ try { return sessionStorage.getItem(ADMIN_KEY_STORE) || ''; } catch(e){ return ''; } }
+  function setAdminKey(k){ try { sessionStorage.setItem(ADMIN_KEY_STORE, k); } catch(e){} }
+
+  function apiGet(params){
+    var q = Object.keys(params).map(function(k){ return k + '=' + encodeURIComponent(params[k]); }).join('&');
+    return fetch(API_URL + '?' + q).then(function(r){ return r.json(); }).then(function(json){
+      if (!json.ok) throw new Error(json.error || 'Erreur inconnue');
+      return json;
+    });
+  }
+  function apiPost(payload){
+    return fetch(API_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    }).then(function(r){ return r.json(); }).then(function(json){
+      if (!json.ok) throw new Error(json.error || 'Erreur inconnue');
+      return json;
+    });
+  }
+  function localWrite(fn){
+    var db = readLocal();
+    fn(db);
+    return writeLocal(db) ? Promise.resolve() : Promise.reject(new Error('le stockage du navigateur est indisponible'));
+  }
+
+  var store = {
+    config: function(){
+      if (!API_URL) return Promise.resolve(readLocal().settings || {});
+      return apiGet({ action:'config' }).then(function(j){ return j.settings || {}; });
+    },
+    register: function(student){
+      if (!API_URL){
+        var dup = readLocal().students.some(function(s){ return s.phone === student.phone && s.role === student.role; });
+        if (dup) return Promise.reject(new Error('Ce numéro WhatsApp est déjà inscrit avec ce rôle.'));
+        student.id = uid();
+        student.createdAt = new Date().toISOString();
+        return localWrite(function(db){ db.students.push(student); });
+      }
+      return apiPost({ action:'register', data: student });
+    },
+    load: function(){
+      if (!API_URL) return Promise.resolve(readLocal());
+      return apiGet({ key: getAdminKey() });
+    },
+    savePairs: function(pairs){
+      if (!API_URL) return localWrite(function(db){ db.pairs = pairs; });
+      return apiPost({ action:'setPairs', key:getAdminKey(), pairs: pairs });
+    },
+    saveSettings: function(settings){
+      if (!API_URL) return localWrite(function(db){ db.settings = settings; });
+      return apiPost({ action:'saveSettings', key:getAdminKey(), settings: settings });
+    },
+    removeStudent: function(id){
+      if (!API_URL) return localWrite(function(db){
+        db.students = db.students.filter(function(s){ return s.id !== id; });
+        db.pairs = db.pairs.filter(function(p){ return p.parrainId !== id && p.filleulId !== id; });
+      });
+      return apiPost({ action:'delete', key:getAdminKey(), id: id });
+    }
+  };
+
+  /* ---------------- Onglets ---------------- */
+
+  var tabs = { inscription: $('tab-inscription'), binomes: $('tab-binomes') };
+  function showTab(name){
+    Object.keys(tabs).forEach(function(k){
+      tabs[k].setAttribute('aria-selected', String(k === name));
+      $('view-' + k).hidden = k !== name;
+    });
+    if (name === 'binomes') openAdmin();
+    if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
+  }
+  tabs.inscription.addEventListener('click', function(){ showTab('inscription'); });
+  tabs.binomes.addEventListener('click', function(){ showTab('binomes'); });
+
+  /* ---------------- Formulaire ---------------- */
+
+  var form = $('signupForm');
+  var levelSelect = $('f-level');
+
+  $('f-residence').innerHTML = selectOptions(COMMUNES, 'Choisis ta commune');
+  $('f-region').innerHTML = selectOptions(REGIONS, 'Choisis ta région');
+  $('cityList').innerHTML = options(CITIES);
+  $('f-bac').innerHTML = selectOptions(BAC_SERIES, 'Choisis ta série');
+  $('languagePicks').innerHTML = picks('language', LANGUAGES);
+  $('interestPicks').innerHTML = picks('interest', INTERESTS);
+  $('modePicks').innerHTML = MODES.map(function(m, idx){
+    return '<label class="pick"><input type="radio" name="mode" value="'+m.id+'"'+(idx===2?' checked':'')+'><span>'+m.label+'</span></label>';
+  }).join('');
+
+  // Nom de l'université, de la filière et liste des lycées : réglés par les organisateurs.
+  function applyConfig(settings){
+    var bits = [settings.program, settings.university].filter(Boolean);
+    $('subtitle').textContent = (bits.length ? bits.join(' · ') + ' — ' : '') + CAMPUS;
+    document.title = 'Parrainage L1' + (settings.program ? ' — ' + settings.program : '');
+    $('highschoolList').innerHTML = options(settings.schools || []);
+  }
+  function loadConfig(){ store.config().then(applyConfig).catch(function(){}); }
+  loadConfig();
+
+  function currentRole(){ return form.querySelector('input[name="role"]:checked').value; }
+  function syncRole(){
+    var role = currentRole();
+    levelSelect.innerHTML = LEVELS[role].map(function(l){ return '<option>'+l+'</option>'; }).join('');
+    levelSelect.disabled = role === 'filleul';
+    $('capacityField').hidden = role !== 'parrain';
+    $('notesLabel').textContent = role === 'parrain' ? 'Ce que je peux apporter' : "Ce que j'attends du parrainage";
+  }
+  Array.prototype.forEach.call(form.querySelectorAll('input[name="role"]'), function(r){ r.addEventListener('change', syncRole); });
+  syncRole();
+
+  function showFormError(msg){ $('formError').textContent = msg; $('formError').hidden = !msg; }
+  function val(id){ return $('f-' + id).value.trim(); }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    showFormError('');
+    var role = currentRole();
+    var others = val('otherLanguages').split(/\s*,\s*/).filter(Boolean);
+    var data = {
+      role: role,
+      firstName: val('firstName'), lastName: val('lastName'),
+      phone: normalizePhone(val('phone')), email: val('email'), studentId: val('studentId'),
+      level: levelSelect.value,
+      capacity: role === 'parrain' ? Number($('f-capacity').value) : 0,
+      residence: val('residence'), region: val('region'), city: val('city'),
+      highschool: val('highschool'), bac: val('bac'),
+      languages: checked('language').concat(others),
+      interests: checked('interest'),
+      mode: form.querySelector('input[name="mode"]:checked').value,
+      notes: val('notes')
+    };
+
+    if (!data.lastName || !data.firstName) return showFormError('Indique ton nom et tes prénoms.');
+    if (!data.phone) return showFormError('Indique un numéro WhatsApp ivoirien valide (10 chiffres, ex. 07 00 00 00 00).');
+    if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) return showFormError("L'adresse email n'est pas valide.");
+    if (!data.residence) return showFormError('Indique la commune où tu habites.');
+    if (!$('f-consent').checked) return showFormError("Coche la case d'accord pour valider l'inscription.");
+
+    var btn = $('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Envoi…';
+    store.register(data).then(function(){
+      $('formWrap').hidden = true;
+      $('successWrap').hidden = false;
+      $('successMsg').textContent = role === 'parrain'
+        ? 'Merci ' + data.firstName + ' ! Tu seras contacté·e sur WhatsApp avec le nom de ton ou ta filleul·e dès que les binômes seront formés.'
+        : 'Bienvenue sur le campus, ' + data.firstName + ' ! Tu seras contacté·e sur WhatsApp avec le nom de ton parrain ou de ta marraine dès que les binômes seront formés.';
+    }).catch(function(err){
+      showFormError("L'inscription n'a pas pu être enregistrée : " + err.message);
+    }).then(function(){
+      btn.disabled = false;
+      btn.textContent = 'Envoyer mon inscription';
+    });
+  });
+
+  $('againBtn').addEventListener('click', function(){
+    form.reset();
+    syncRole();
+    $('formWrap').hidden = false;
+    $('successWrap').hidden = true;
+    $('f-firstName').focus();
+  });
+
+  /* ---------------- Espace organisateurs ---------------- */
+
+  var admin = { students: [], pairs: [], settings: {} };
+
+  function criteriaSettings(){ return M.settingsWithDefaults(admin.settings.criteria); }
+
+  function openAdmin(){
+    var banner = $('modeBanner');
+    banner.hidden = !!API_URL;
+    if (!API_URL) banner.innerHTML = '<strong>Mode démo :</strong> les inscriptions sont enregistrées uniquement dans ce navigateur. Pour collecter les réponses de tous les étudiants, branche le script Google Apps Script décrit dans le <code>README.md</code>.';
+    reloadAdmin();
+  }
+
+  function showLock(show){ $('lockPanel').hidden = !show; $('adminPanel').hidden = show; }
+
+  function reloadAdmin(){
+    $('adminError').hidden = true;
+    return store.load().then(function(db){
+      admin.students = (db.students || []).map(function(s){
+        s.languages = M.asList(s.languages);
+        s.interests = M.asList(s.interests);
+        return s;
+      });
+      admin.pairs = db.pairs || [];
+      admin.settings = db.settings || {};
+      showLock(false);
+      renderSettings();
+      renderAdmin();
+    }).catch(function(err){
+      if (/code organisateur/i.test(err.message)){ showLock(true); return; }
+      showLock(false);
+      showAdminError('Impossible de charger les inscriptions (' + err.message + ').');
+    });
+  }
+  function showAdminError(msg){ $('adminError').hidden = false; $('adminError').textContent = msg; }
+
+  $('keyForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    setAdminKey($('keyInput').value);
+    reloadAdmin();
+  });
+
+  function byId(id){
+    for (var i=0;i<admin.students.length;i++){ if (String(admin.students[i].id) === String(id)) return admin.students[i]; }
+    return null;
+  }
+
+  /* ----- Réglages du bot ----- */
+
+  function renderSettings(){
+    var st = criteriaSettings();
+    $('criteriaList').innerHTML = M.CRITERIA.map(function(c){
+      var s = st[c.id];
+      return '<div class="crit" data-crit="'+c.id+'">' +
+        '<div class="name">'+escapeHtml(c.label)+'</div>' +
+        '<select data-rule aria-label="Règle pour '+escapeHtml(c.label)+'">' + M.RULES.map(function(r){
+          return '<option value="'+r.id+'"'+(r.id===s.rule?' selected':'')+'>'+r.label+'</option>';
+        }).join('') + '</select>' +
+        '<label class="weight'+(s.rule==='ignore'?' off':'')+'">Poids <input type="range" min="0" max="10" step="1" value="'+s.weight+'" data-weight aria-label="Poids pour '+escapeHtml(c.label)+'"><output>'+s.weight+'</output></label>' +
+      '</div>';
+    }).join('');
+    $('schoolsInput').value = (admin.settings.schools || []).join('\n');
+    $('universityInput').value = admin.settings.university || '';
+    $('programInput').value = admin.settings.program || '';
+    renderSummary(st);
+  }
+
+  function renderSummary(st){
+    var active = M.CRITERIA.filter(function(c){ return st[c.id].rule !== 'ignore' && (st[c.id].weight > 0 || st[c.id].rule === 'required'); });
+    $('botSummary').textContent = active.length
+      ? active.map(function(c){ return c.short + (st[c.id].rule === 'required' ? ' (obligatoire)' : st[c.id].rule === 'different' ? ' (différent)' : ''); }).join(' · ')
+      : 'Aucun critère actif';
+  }
+
+  function readSettingsForm(){
+    var crit = {};
+    Array.prototype.forEach.call($('criteriaList').querySelectorAll('[data-crit]'), function(row){
+      crit[row.getAttribute('data-crit')] = {
+        rule: row.querySelector('[data-rule]').value,
+        weight: Number(row.querySelector('[data-weight]').value)
+      };
+    });
+    var schools = $('schoolsInput').value.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
+    return { criteria: crit, schools: schools, university: $('universityInput').value.trim(), program: $('programInput').value.trim() };
+  }
+
+  $('criteriaList').addEventListener('input', function(e){
+    var row = e.target.closest('[data-crit]');
+    if (!row) return;
+    var w = row.querySelector('[data-weight]');
+    row.querySelector('output').textContent = w.value;
+    row.querySelector('.weight').classList.toggle('off', row.querySelector('[data-rule]').value === 'ignore');
+    // Aperçu immédiat des scores avec les nouveaux réglages (non enregistrés).
+    admin.settings = Object.assign({}, admin.settings, readSettingsForm());
+    renderSummary(criteriaSettings());
+    renderAdmin();
+    $('settingsMsg').textContent = 'Modifications non enregistrées';
+  });
+
+  $('defaultsBtn').addEventListener('click', function(){
+    admin.settings = Object.assign({}, admin.settings, { criteria: {} });
+    renderSettings();
+    admin.settings.criteria = readSettingsForm().criteria;
+    renderAdmin();
+    $('settingsMsg').textContent = 'Modifications non enregistrées';
+  });
+
+  $('saveSettingsBtn').addEventListener('click', function(){
+    var btn = this;
+    var settings = readSettingsForm();
+    btn.disabled = true;
+    store.saveSettings(settings).then(function(){
+      admin.settings = settings;
+      $('settingsMsg').textContent = 'Réglages enregistrés';
+      applyConfig(settings);
+    }).catch(function(err){
+      $('settingsMsg').textContent = 'Échec : ' + err.message;
+    }).then(function(){ btn.disabled = false; });
+  });
+
+  /* ----- Binômes ----- */
+
+  function renderAdmin(){
+    var st = criteriaSettings();
+    var parrains = admin.students.filter(function(s){ return s.role === 'parrain'; });
+    var filleuls = admin.students.filter(function(s){ return s.role === 'filleul'; });
+    var pairs = admin.pairs.filter(function(p){ return byId(p.parrainId) && byId(p.filleulId); });
+    var load = {}, matched = {};
+    pairs.forEach(function(p){ load[p.parrainId] = (load[p.parrainId]||0)+1; matched[p.filleulId] = true; });
+    var totalCap = parrains.reduce(function(n, p){ return n + M.capacityOf(p); }, 0);
+    var unmatched = filleuls.filter(function(f){ return !matched[f.id]; });
+    var regions = {};
+    admin.students.forEach(function(s){ if (s.region) regions[M.norm(s.region)] = 1; });
+
+    $('stats').innerHTML = [
+      [filleuls.length, 'Filleul·es (L1)'],
+      [parrains.length, 'Parrains / marraines'],
+      [totalCap, 'Places de parrainage'],
+      [Object.keys(regions).length, "Régions d'origine"],
+      [pairs.length, 'Binômes formés']
+    ].map(function(s){ return '<div class="stat"><div class="v">'+s[0]+'</div><div class="k">'+s[1]+'</div></div>'; }).join('');
+
+    $('runBtn').disabled = !unmatched.length || !parrains.length;
+    $('rerunBtn').disabled = !filleuls.length || !parrains.length;
+    $('resetBtn').disabled = !pairs.length;
+    $('exportBtn').disabled = !pairs.length;
+
+    $('pairsCount').textContent = pairs.length ? '· ' + pairs.length : '';
+    $('pairsList').innerHTML = pairs.length ? pairs.map(function(pr){
+      var p = byId(pr.parrainId), f = byId(pr.filleulId);
+      var c = M.score(p, f, st);
+      return '<article class="pair">' +
+        '<div class="pair-people">' + personBlock(p, 'parrain') + '<div class="link" aria-hidden="true">↔</div>' + personBlock(f, 'filleul') + '</div>' +
+        reasonsHtml(c) +
+        '<div class="pair-foot"><span class="score">Score : ' + c.score + '</span>' +
+          '<span class="pair-actions">' +
+          '<a class="btn small" href="'+escapeHtml(announce(p, f, 'parrain'))+'" target="_blank" rel="noopener" title="Envoyer le binôme au parrain sur WhatsApp">WhatsApp parrain</a>' +
+          '<a class="btn small" href="'+escapeHtml(announce(f, p, 'filleul'))+'" target="_blank" rel="noopener" title="Envoyer le binôme au filleul sur WhatsApp">WhatsApp filleul</a>' +
+          '<button class="btn ghost small" data-unpair="'+escapeHtml(pr.parrainId + '|' + pr.filleulId)+'" type="button">Dissoudre</button></span></div>' +
+      '</article>';
+    }).join('') : '<p class="muted">Aucun binôme pour l\'instant. Règle les critères puis clique sur « Lancer le bot », ou associe les filleul·es à la main ci-dessous.</p>';
+
+    var available = parrains.filter(function(p){ return (load[p.id]||0) < M.capacityOf(p); });
+    $('unmatchedCount').textContent = unmatched.length ? '· ' + unmatched.length : '';
+    if (!filleuls.length){
+      $('unmatchedList').innerHTML = '<p class="muted">Aucun·e filleul·e inscrit·e.</p>';
+    } else if (!unmatched.length){
+      $('unmatchedList').innerHTML = '<p class="muted">Tous les filleul·es ont un binôme.</p>';
+    } else {
+      $('unmatchedList').innerHTML = (available.length ? '' : '<p class="muted">Plus aucune place chez les parrains : il faut recruter d\'autres parrains ou augmenter leur nombre de filleul·es.</p>') +
+        '<div class="table-wrap"><table><thead><tr><th>Filleul·e</th><th>Commune</th><th>Provenance</th><th>Associer à</th></tr></thead><tbody>' +
+        unmatched.map(function(f){
+          var opts = available.map(function(p){ return { p:p, c:M.score(p, f, st) }; })
+            .sort(function(a,b){ return (b.c.ok - a.c.ok) || (b.c.score - a.c.score); })
+            .map(function(o){
+              var tag = o.c.ok ? o.c.score : 'incompatible : ' + o.c.blockers.join(', ');
+              return '<option value="'+escapeHtml(o.p.id)+'">'+escapeHtml(fullName(o.p))+' ('+escapeHtml(tag)+')</option>';
+            }).join('');
+          return '<tr><td>'+escapeHtml(fullName(f))+'<div class="sub">'+escapeHtml(f.phone)+'</div></td>' +
+            '<td>'+escapeHtml(f.residence)+'</td>' +
+            '<td>'+escapeHtml(origin(f))+'<div class="sub">'+escapeHtml(schooling(f))+'</div></td>' +
+            '<td>'+(available.length ? '<select data-assign="'+escapeHtml(f.id)+'" aria-label="Choisir un parrain pour '+escapeHtml(fullName(f))+'"><option value="">Choisir…</option>'+opts+'</select>' : '—')+'</td></tr>';
+        }).join('') + '</tbody></table></div>';
+    }
+
+    $('allCount').textContent = admin.students.length ? '· ' + admin.students.length : '';
+    $('allList').innerHTML = admin.students.length ?
+      '<div class="table-wrap"><table><thead><tr><th>Nom</th><th>Rôle</th><th>Commune</th><th>Provenance</th><th>Contact</th><th></th></tr></thead><tbody>' +
+      admin.students.slice().sort(function(a,b){ return a.role.localeCompare(b.role) || fullName(a).localeCompare(fullName(b)); }).map(function(s){
+        var isP = s.role === 'parrain';
+        var roleTxt = isP ? 'Parrain · ' + escapeHtml(s.level) + ' · ' + (load[s.id]||0) + '/' + M.capacityOf(s) : 'Filleul·e · L1';
+        return '<tr><td>'+escapeHtml(fullName(s))+(s.notes ? '<div class="sub">'+escapeHtml(s.notes)+'</div>' : '')+'</td>' +
+          '<td><span class="role-dot" style="background:var(--'+(isP?'parrain':'filleul')+')"></span>'+roleTxt+'</td>' +
+          '<td>'+escapeHtml(s.residence)+'</td>' +
+          '<td>'+escapeHtml(origin(s))+'<div class="sub">'+escapeHtml(schooling(s))+'</div><div class="sub">'+escapeHtml((s.languages||[]).join(', '))+'</div></td>' +
+          '<td><a href="'+waLink(s.phone)+'" target="_blank" rel="noopener">'+escapeHtml(s.phone)+'</a>'+(s.email ? '<div class="sub"><a href="mailto:'+escapeHtml(s.email)+'">'+escapeHtml(s.email)+'</a></div>' : '')+'</td>' +
+          '<td><button class="btn danger small" data-remove="'+escapeHtml(s.id)+'" type="button">Retirer</button></td></tr>';
+      }).join('') + '</tbody></table></div>'
+      : '<p class="muted">Aucune inscription pour l\'instant. Partage le formulaire pour recueillir les inscriptions.</p>';
+  }
+
+  function origin(s){
+    var region = s.region && M.norm(s.region).indexOf(M.norm(s.city) || '\u0000') === -1 ? s.region : '';
+    return [s.city, region].filter(Boolean).join(', ');
+  }
+  // Lien WhatsApp avec un message prêt à envoyer pour annoncer le binôme.
+  function announce(to, other, role){
+    var text = role === 'parrain'
+      ? 'Bonjour ' + to.firstName + ', merci pour ton engagement dans le parrainage ! Ton ou ta filleul·e est ' + fullName(other) + ' (L1), joignable sur WhatsApp au ' + other.phone + '. Écris-lui pour te présenter.'
+      : 'Bonjour ' + to.firstName + ', bienvenue en L1 ! Ton parrain ou ta marraine est ' + fullName(other) + ' (' + other.level + '), joignable sur WhatsApp au ' + other.phone + '. N\'hésite pas à lui écrire.';
+    return waLink(to.phone) + '?text=' + encodeURIComponent(text);
+  }
+  function schooling(s){ return [s.highschool, s.bac ? 'BAC ' + s.bac : ''].filter(Boolean).join(' · '); }
+
+  function reasonsHtml(c){
+    var items = c.reasons.map(function(r){ return '<span'+(r.points < 0 ? ' class="neg"' : '')+'>'+escapeHtml(r.label)+'</span>'; });
+    c.blockers.forEach(function(b){ items.push('<span class="neg">Ne respecte pas : '+escapeHtml(b)+'</span>'); });
+    return items.length ? '<div class="why">' + items.join('') + '</div>' : '';
+  }
+
+  function personBlock(s, role){
+    return '<div class="who '+role+'"><div class="tag">'+(role === 'parrain' ? 'Parrain · ' + escapeHtml(s.level) : 'Filleul·e · L1')+'</div>' +
+      '<div class="nm">'+escapeHtml(fullName(s))+'</div>' +
+      (s.residence ? '<div class="sub">Habite à '+escapeHtml(s.residence)+'</div>' : '') +
+      (origin(s) ? '<div class="sub">Origine : '+escapeHtml(origin(s))+'</div>' : '') +
+      (schooling(s) ? '<div class="sub">'+escapeHtml(schooling(s))+'</div>' : '') +
+      '<div class="sub"><a href="'+waLink(s.phone)+'" target="_blank" rel="noopener">'+escapeHtml(s.phone)+'</a></div></div>';
+  }
+
+  function commitPairs(pairs){
+    var previous = admin.pairs;
+    admin.pairs = pairs;
+    renderAdmin();
+    return store.savePairs(pairs).catch(function(err){
+      admin.pairs = previous;
+      renderAdmin();
+      showAdminError("Les binômes n'ont pas pu être enregistrés (" + err.message + ').');
+    });
+  }
+
+  function newPair(parrainId, filleulId, score){
+    return { id: uid(), parrainId: parrainId, filleulId: filleulId, score: score, createdAt: new Date().toISOString() };
+  }
+
+  function runBot(reset){
+    var r = M.match(admin.students, admin.pairs, criteriaSettings(), { reset: reset });
+    var base = reset ? [] : admin.pairs;
+    var added = r.added.map(function(a){ return newPair(a.parrainId, a.filleulId, a.score); });
+    var msg = 'Le bot a formé ' + added.length + (added.length > 1 ? ' binômes' : ' binôme') + '.';
+    if (r.unmatched.length){
+      msg += ' ' + r.unmatched.length + ' filleul·e' + (r.unmatched.length > 1 ? 's restent' : ' reste') +
+        ' sans binôme : pas assez de places chez les parrains ou aucun parrain qui respecte les critères obligatoires.';
+    }
+    $('botResult').hidden = false;
+    $('botResult').textContent = msg;
+    commitPairs(base.concat(added));
+  }
+
+  $('runBtn').addEventListener('click', function(){ runBot(false); });
+  $('rerunBtn').addEventListener('click', function(){
+    var btn = this;
+    if (admin.pairs.length && !btn.dataset.confirming){
+      btn.dataset.confirming = '1';
+      btn.textContent = 'Remplacer les binômes actuels ?';
+      setTimeout(function(){ delete btn.dataset.confirming; btn.textContent = 'Tout recalculer'; }, 3000);
+      return;
+    }
+    delete btn.dataset.confirming;
+    btn.textContent = 'Tout recalculer';
+    runBot(true);
+  });
+
+  $('resetBtn').addEventListener('click', function(){
+    var btn = this;
+    if (!btn.dataset.confirming){
+      btn.dataset.confirming = '1';
+      btn.textContent = 'Confirmer ?';
+      setTimeout(function(){ delete btn.dataset.confirming; btn.textContent = 'Dissoudre tous les binômes'; }, 3000);
+      return;
+    }
+    delete btn.dataset.confirming;
+    btn.textContent = 'Dissoudre tous les binômes';
+    $('botResult').hidden = true;
+    commitPairs([]);
+  });
+
+  $('reloadBtn').addEventListener('click', reloadAdmin);
+
+  $('view-binomes').addEventListener('click', function(e){
+    var un = e.target.closest('[data-unpair]');
+    if (un){
+      var ids = un.getAttribute('data-unpair').split('|');
+      commitPairs(admin.pairs.filter(function(p){ return !(String(p.parrainId) === ids[0] && String(p.filleulId) === ids[1]); }));
+      return;
+    }
+    var rm = e.target.closest('[data-remove]');
+    if (rm){
+      if (!rm.dataset.confirming){
+        rm.dataset.confirming = '1';
+        rm.textContent = 'Confirmer ?';
+        setTimeout(function(){ if (rm.isConnected){ delete rm.dataset.confirming; rm.textContent = 'Retirer'; } }, 3000);
+        return;
+      }
+      rm.disabled = true;
+      store.removeStudent(rm.getAttribute('data-remove')).then(reloadAdmin).catch(function(err){
+        showAdminError('Suppression impossible (' + err.message + ').');
+        rm.disabled = false;
+      });
+    }
+  });
+
+  $('view-binomes').addEventListener('change', function(e){
+    var sel = e.target.closest('select[data-assign]');
+    if (!sel || !sel.value) return;
+    var p = byId(sel.value), f = byId(sel.getAttribute('data-assign'));
+    commitPairs(admin.pairs.concat([newPair(p.id, f.id, M.score(p, f, criteriaSettings()).score)]));
+  });
+
+  $('exportBtn').addEventListener('click', function(){
+    var st = criteriaSettings();
+    var rows = [['Parrain / marraine','WhatsApp parrain','Niveau','Commune parrain','Provenance parrain','Filleul·e','WhatsApp filleul','Commune filleul','Provenance filleul','Points communs','Score']];
+    admin.pairs.forEach(function(pr){
+      var p = byId(pr.parrainId), f = byId(pr.filleulId);
+      if (!p || !f) return;
+      var c = M.score(p, f, st);
+      rows.push([fullName(p), p.phone, p.level, p.residence, origin(p), fullName(f), f.phone, f.residence, origin(f),
+        c.reasons.map(function(r){ return r.label; }).join(' / '), c.score]);
+    });
+    var csv = rows.map(function(r){
+      return r.map(function(v){ return '"' + String(v == null ? '' : v).replace(/"/g,'""') + '"'; }).join(';');
+    }).join('\r\n');
+    var blob = new Blob(['﻿' + csv], { type:'text/csv;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'binomes-parrainage.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  });
+
+  /* ---------------- Partage ---------------- */
+
+  var shareDialog = $('shareDialog');
+  function formUrl(){ return location.href.split('#')[0] + '#inscription'; }
+  $('shareBtn').addEventListener('click', function(){
+    var url = formUrl();
+    $('shareUrl').value = url;
+    var qr = $('qrCanvas');
+    qr.innerHTML = '';
+    if (window.QRCode){
+      new QRCode(qr, { text:url, width:200, height:200, colorDark:'#20241f', colorLight:'#ffffff', correctLevel: QRCode.CorrectLevel.M });
+    } else {
+      qr.textContent = 'QR indisponible — utilise le lien ci-dessous.';
+    }
+    shareDialog.showModal();
+  });
+  $('closeShareBtn').addEventListener('click', function(){ shareDialog.close(); });
+  $('copyBtn').addEventListener('click', function(){
+    var btn = this;
+    try {
+      navigator.clipboard.writeText(formUrl()).then(function(){
+        btn.textContent = 'Copié !';
+        setTimeout(function(){ btn.textContent = 'Copier'; }, 1500);
+      });
+    } catch(e){ $('shareUrl').select(); }
+  });
+
+  showTab(location.hash === '#binomes' ? 'binomes' : 'inscription');
+})();
+</script>
+</body>
+</html>
