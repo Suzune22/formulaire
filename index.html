@@ -475,7 +475,8 @@
 </dialog>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="matching.js"></script>
+<!-- Changer le numéro de version à chaque modification de matching.js, pour que les navigateurs ne gardent pas l'ancienne copie. -->
+<script src="matching.js?v=2"></script>
 <script>
 (function(){
   // URL de déploiement du script apps-script/Code.gs (voir README.md).
@@ -495,6 +496,8 @@
   var LOCAL_KEY = 'parrainage-abidjan-v1';
   var ADMIN_KEY_STORE = 'parrainage-admin-key';
   var M = window.Matching;
+  // Si le navigateur a gardé une ancienne copie du bot, on le signale au lieu de planter.
+  var BOT_OUTDATED = !M || typeof M.isParrain !== 'function';
 
   var $ = function(id){ return document.getElementById(id); };
   function escapeHtml(s){
@@ -723,6 +726,11 @@
 
   function reloadAdmin(){
     $('adminError').hidden = true;
+    if (BOT_OUTDATED){
+      showLock(false);
+      showAdminError('Ton navigateur utilise une ancienne version de la page. Appuie sur Ctrl + F5 (ou vide le cache) pour la recharger.');
+      return Promise.resolve();
+    }
     return store.load().then(function(db){
       admin.students = (db.students || []).map(function(s){
         s.languages = M.asList(s.languages);
