@@ -108,7 +108,7 @@
   .field textarea{ resize:vertical; min-height:70px; }
   .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 
-  .role-pick{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .role-pick{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
   .role-pick label{
     position:relative; display:flex; flex-direction:column; gap:3px; padding:14px; border-radius:12px; cursor:pointer;
     border:1.5px solid var(--border); background:var(--paper);
@@ -269,14 +269,15 @@
     <div class="form-card">
       <div id="formWrap">
         <h2>Inscription au parrainage</h2>
-        <p class="lead" id="lead">Tu viens d'arriver en L1 sur le campus de Marcory et tu veux un·e aîné·e de la filière pour t'aider à prendre tes marques ? Ou tu es en L2 ou plus et tu veux accompagner un·e nouvel·le ? Inscris-toi : les binômes sont formés selon ta commune, ta région d'origine, ton lycée, ta série de BAC et tes centres d'intérêt.</p>
+        <p class="lead" id="lead">Tu viens d'arriver en L1 sur le campus de Marcory et tu veux un·e aîné·e de la filière pour t'aider à prendre tes marques ? Tu es en L2 ou plus et tu veux accompagner un·e nouvel·le ? Tu es en L2 et tu n'as pas encore de parrain ? Tu peux à la fois en chercher un et parrainer un·e L1. Inscris-toi : les binômes sont formés selon ta commune, ta région d'origine, ton lycée, ta série de BAC et tes centres d'intérêt.</p>
 
         <form class="signup" id="signupForm" novalidate>
           <fieldset>
             <legend>Je m'inscris comme…</legend>
             <div class="role-pick">
-              <label><input type="radio" name="role" value="filleul" checked><strong>Filleul·e</strong><span>Je suis en L1 et je cherche un parrain ou une marraine</span></label>
-              <label><input type="radio" name="role" value="parrain"><strong>Parrain / Marraine</strong><span>Je suis en L2 ou plus et je veux accompagner un·e L1</span></label>
+              <label><input type="radio" name="role" value="filleul" checked><strong>Filleul·e</strong><span>Je suis en L1 (ou en L2) et je cherche un parrain ou une marraine</span></label>
+              <label><input type="radio" name="role" value="parrain"><strong>Parrain / Marraine</strong><span>Je suis en L2 ou plus et je veux accompagner un·e étudiant·e plus jeune</span></label>
+              <label><input type="radio" name="role" value="both"><strong>Les deux</strong><span>Je suis en L2 sans parrain : j'en cherche un et je veux aussi parrainer un·e L1</span></label>
             </div>
           </fieldset>
 
@@ -489,7 +490,7 @@
   var LANGUAGES = ['Français','Anglais','Baoulé','Dioula','Bété','Sénoufo','Agni','Attié','Abbey','Yacouba','Gouro','Guéré','Ébrié','Mooré'];
   var INTERESTS = ['Football','Basket & autres sports','Musique','Danse','Jeux vidéo','Cinéma & séries','Lecture','Informatique & tech','Entrepreneuriat','Débats & éloquence','Mode & beauté','Cuisine','Religion & spiritualité','Vie associative','Sorties'];
   var MODES = [{id:'presentiel', label:'Sur le campus de Marcory'}, {id:'distanciel', label:'En ligne (WhatsApp, appel)'}, {id:'les-deux', label:'Peu importe'}];
-  var LEVELS = { filleul:['L1'], parrain:['L2','L3','M1','M2'] };
+  var LEVELS = { filleul:['L1','L2'], parrain:['L2','L3','M1','M2'], both:['L2','L3','M1'] };
 
   var LOCAL_KEY = 'parrainage-abidjan-v1';
   var ADMIN_KEY_STORE = 'parrainage-admin-key';
@@ -566,8 +567,8 @@
     },
     register: function(student){
       if (!API_URL){
-        var dup = readLocal().students.some(function(s){ return s.phone === student.phone && s.role === student.role; });
-        if (dup) return Promise.reject(new Error('Ce numéro WhatsApp est déjà inscrit avec ce rôle.'));
+        var dup = readLocal().students.some(function(s){ return s.phone === student.phone; });
+        if (dup) return Promise.reject(new Error('Ce numéro WhatsApp est déjà inscrit. Pour être à la fois filleul·e et parrain, choisis « Les deux » en une seule inscription.'));
         student.id = uid();
         student.createdAt = new Date().toISOString();
         return localWrite(function(db){ db.students.push(student); });
@@ -637,10 +638,13 @@
   function currentRole(){ return form.querySelector('input[name="role"]:checked').value; }
   function syncRole(){
     var role = currentRole();
+    var previous = levelSelect.value;
     levelSelect.innerHTML = LEVELS[role].map(function(l){ return '<option>'+l+'</option>'; }).join('');
-    levelSelect.disabled = role === 'filleul';
-    $('capacityField').hidden = role !== 'parrain';
-    $('notesLabel').textContent = role === 'parrain' ? 'Ce que je peux apporter' : "Ce que j'attends du parrainage";
+    if (LEVELS[role].indexOf(previous) !== -1) levelSelect.value = previous;
+    levelSelect.disabled = LEVELS[role].length < 2;
+    $('capacityField').hidden = role === 'filleul';
+    $('notesLabel').textContent = role === 'parrain' ? 'Ce que je peux apporter'
+      : role === 'both' ? "Ce que j'attends du parrainage et ce que je peux apporter" : "Ce que j'attends du parrainage";
   }
   Array.prototype.forEach.call(form.querySelectorAll('input[name="role"]'), function(r){ r.addEventListener('change', syncRole); });
   syncRole();
@@ -658,7 +662,7 @@
       firstName: val('firstName'), lastName: val('lastName'),
       phone: normalizePhone(val('phone')), email: val('email'), studentId: val('studentId'),
       level: levelSelect.value,
-      capacity: role === 'parrain' ? Number($('f-capacity').value) : 0,
+      capacity: role === 'filleul' ? 0 : Number($('f-capacity').value),
       residence: val('residence'), region: val('region'), city: val('city'),
       highschool: val('highschool'), bac: val('bac'),
       languages: checked('language').concat(others),
@@ -681,6 +685,10 @@
       $('successWrap').hidden = false;
       $('successMsg').textContent = role === 'parrain'
         ? 'Merci ' + data.firstName + ' ! Tu seras contacté·e sur WhatsApp avec le nom de ton ou ta filleul·e dès que les binômes seront formés.'
+        : role === 'both'
+        ? 'Merci ' + data.firstName + ' ! Tu seras contacté·e sur WhatsApp avec le nom de ton parrain ou de ta marraine, et celui de ton ou ta filleul·e, dès que les binômes seront formés.'
+        : data.level !== 'L1'
+        ? 'Merci ' + data.firstName + ' ! Tu seras contacté·e sur WhatsApp avec le nom de ton parrain ou de ta marraine dès que les binômes seront formés.'
         : 'Bienvenue sur le campus, ' + data.firstName + ' ! Tu seras contacté·e sur WhatsApp avec le nom de ton parrain ou de ta marraine dès que les binômes seront formés.';
     }).catch(function(err){
       showFormError("L'inscription n'a pas pu être enregistrée : " + err.message);
@@ -822,8 +830,8 @@
 
   function renderAdmin(){
     var st = criteriaSettings();
-    var parrains = admin.students.filter(function(s){ return s.role === 'parrain'; });
-    var filleuls = admin.students.filter(function(s){ return s.role === 'filleul'; });
+    var parrains = admin.students.filter(M.isParrain);
+    var filleuls = admin.students.filter(M.isFilleul);
     var pairs = admin.pairs.filter(function(p){ return byId(p.parrainId) && byId(p.filleulId); });
     var load = {}, matched = {};
     pairs.forEach(function(p){ load[p.parrainId] = (load[p.parrainId]||0)+1; matched[p.filleulId] = true; });
@@ -833,7 +841,7 @@
     admin.students.forEach(function(s){ if (s.region) regions[M.norm(s.region)] = 1; });
 
     $('stats').innerHTML = [
-      [filleuls.length, 'Filleul·es (L1)'],
+      [filleuls.length, 'Cherchent un parrain'],
       [parrains.length, 'Parrains / marraines'],
       [totalCap, 'Places de parrainage'],
       [Object.keys(regions).length, "Régions d'origine"],
@@ -870,7 +878,7 @@
       $('unmatchedList').innerHTML = (available.length ? '' : '<p class="muted">Plus aucune place chez les parrains : il faut recruter d\'autres parrains ou augmenter leur nombre de filleul·es.</p>') +
         '<div class="table-wrap"><table><thead><tr><th>Filleul·e</th><th>Commune</th><th>Provenance</th><th>Associer à</th></tr></thead><tbody>' +
         unmatched.map(function(f){
-          var opts = available.map(function(p){ return { p:p, c:M.score(p, f, st) }; })
+          var opts = available.filter(function(p){ return p.id !== f.id; }).map(function(p){ return { p:p, c:M.score(p, f, st) }; })
             .sort(function(a,b){ return (b.c.ok - a.c.ok) || (b.c.score - a.c.score); })
             .map(function(o){
               var tag = o.c.ok ? o.c.score : 'incompatible : ' + o.c.blockers.join(', ');
@@ -887,8 +895,12 @@
     $('allList').innerHTML = admin.students.length ?
       '<div class="table-wrap"><table><thead><tr><th>Nom</th><th>Rôle</th><th>Commune</th><th>Provenance</th><th>Contact</th><th></th></tr></thead><tbody>' +
       admin.students.slice().sort(function(a,b){ return a.role.localeCompare(b.role) || fullName(a).localeCompare(fullName(b)); }).map(function(s){
-        var isP = s.role === 'parrain';
-        var roleTxt = isP ? 'Parrain · ' + escapeHtml(s.level) + ' · ' + (load[s.id]||0) + '/' + M.capacityOf(s) : 'Filleul·e · L1';
+        var isP = M.isParrain(s);
+        var capTxt = ' · ' + (load[s.id]||0) + '/' + M.capacityOf(s) + ' filleul·e' + (M.capacityOf(s) > 1 ? 's' : '');
+        var roleTxt = s.role === 'both' ? 'Filleul·e et parrain · ' + escapeHtml(s.level) + capTxt
+          : isP ? 'Parrain · ' + escapeHtml(s.level) + capTxt
+          : 'Filleul·e · ' + escapeHtml(s.level || 'L1');
+        if (M.isFilleul(s) && !matched[s.id]) roleTxt += '<div class="sub">Sans parrain</div>';
         return '<tr><td>'+escapeHtml(fullName(s))+(s.notes ? '<div class="sub">'+escapeHtml(s.notes)+'</div>' : '')+'</td>' +
           '<td><span class="role-dot" style="background:var(--'+(isP?'parrain':'filleul')+')"></span>'+roleTxt+'</td>' +
           '<td>'+escapeHtml(s.residence)+'</td>' +
@@ -906,8 +918,8 @@
   // Lien WhatsApp avec un message prêt à envoyer pour annoncer le binôme.
   function announce(to, other, role){
     var text = role === 'parrain'
-      ? 'Bonjour ' + to.firstName + ', merci pour ton engagement dans le parrainage ! Ton ou ta filleul·e est ' + fullName(other) + ' (L1), joignable sur WhatsApp au ' + other.phone + '. Écris-lui pour te présenter.'
-      : 'Bonjour ' + to.firstName + ', bienvenue en L1 ! Ton parrain ou ta marraine est ' + fullName(other) + ' (' + other.level + '), joignable sur WhatsApp au ' + other.phone + '. N\'hésite pas à lui écrire.';
+      ? 'Bonjour ' + to.firstName + ', merci pour ton engagement dans le parrainage ! Ton ou ta filleul·e est ' + fullName(other) + ' (' + (other.level || 'L1') + '), joignable sur WhatsApp au ' + other.phone + '. Écris-lui pour te présenter.'
+      : 'Bonjour ' + to.firstName + ', ' + ((to.level || 'L1') === 'L1' ? 'bienvenue en L1 ! ' : '') + 'Ton parrain ou ta marraine est ' + fullName(other) + ' (' + other.level + '), joignable sur WhatsApp au ' + other.phone + '. N\'hésite pas à lui écrire.';
     return waLink(to.phone) + '?text=' + encodeURIComponent(text);
   }
   function schooling(s){ return [s.highschool, s.bac ? 'BAC ' + s.bac : ''].filter(Boolean).join(' · '); }
@@ -919,7 +931,7 @@
   }
 
   function personBlock(s, role){
-    return '<div class="who '+role+'"><div class="tag">'+(role === 'parrain' ? 'Parrain · ' + escapeHtml(s.level) : 'Filleul·e · L1')+'</div>' +
+    return '<div class="who '+role+'"><div class="tag">'+(role === 'parrain' ? 'Parrain · ' + escapeHtml(s.level) : 'Filleul·e · ' + escapeHtml(s.level || 'L1'))+'</div>' +
       '<div class="nm">'+escapeHtml(fullName(s))+'</div>' +
       (s.residence ? '<div class="sub">Habite à '+escapeHtml(s.residence)+'</div>' : '') +
       (origin(s) ? '<div class="sub">Origine : '+escapeHtml(origin(s))+'</div>' : '') +

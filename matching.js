@@ -93,9 +93,22 @@
   }
 
   // Score d'un couple parrain / filleul avec le détail des points.
+  // Un·e étudiant·e inscrit·e en « les deux » cherche un parrain et parraine à la fois.
+  var LEVELS = ['L1', 'L2', 'L3', 'M1', 'M2', 'Doctorat'];
+  function isParrain(s) { return s.role === 'parrain' || s.role === 'both'; }
+  function isFilleul(s) { return s.role === 'filleul' || s.role === 'both'; }
+  function levelRank(s, fallback) {
+    var i = LEVELS.indexOf(String(s.level || '').trim());
+    return i === -1 ? fallback : i;
+  }
+
   function score(parrain, filleul, settings) {
     var st = settingsWithDefaults(settings);
     var total = 0, ok = true, reasons = [], blockers = [];
+    // Le parrain doit être d'un niveau supérieur à son filleul (un L2 parraine un L1,
+    // et reçoit lui-même un parrain de L3 ou plus).
+    if (parrain.id != null && parrain.id === filleul.id) { ok = false; blockers.push('Même personne'); }
+    else if (levelRank(parrain, 1) <= levelRank(filleul, 0)) { ok = false; blockers.push('Niveau du parrain pas supérieur'); }
     CRITERIA.forEach(function (c) {
       var rule = st[c.id].rule, w = st[c.id].weight;
       if (rule === 'ignore') return;
@@ -180,8 +193,8 @@
     options = options || {};
     var byId = {};
     students.forEach(function (s) { byId[s.id] = s; });
-    var parrains = students.filter(function (s) { return s.role === 'parrain'; });
-    var filleuls = students.filter(function (s) { return s.role === 'filleul'; });
+    var parrains = students.filter(isParrain);
+    var filleuls = students.filter(isFilleul);
 
     var kept = options.reset ? [] : (existingPairs || []).filter(function (p) {
       return byId[p.parrainId] && byId[p.filleulId];
@@ -229,6 +242,9 @@
   }
 
   return {
+    LEVELS: LEVELS,
+    isParrain: isParrain,
+    isFilleul: isFilleul,
     CRITERIA: CRITERIA,
     RULES: RULES,
     DEFAULT_SETTINGS: DEFAULT_SETTINGS,

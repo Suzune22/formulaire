@@ -61,7 +61,8 @@ function doPost(e) {
 }
 
 function register_(d) {
-  var role = d.role === 'parrain' ? 'parrain' : 'filleul';
+  // « both » : étudiant·e (souvent en L2) qui cherche un parrain et parraine à la fois.
+  var role = ['parrain', 'both'].indexOf(d.role) !== -1 ? d.role : 'filleul';
   var s = {};
   STUDENT_COLS.forEach(function (c) { s[c] = LIST_COLS.indexOf(c) !== -1 ? toList_(d[c]).join('; ') : clean_(d[c]); });
   s.id = Utilities.getUuid();
@@ -69,17 +70,18 @@ function register_(d) {
   s.role = role;
   s.email = s.email.toLowerCase();
   s.phone = normalizePhone_(d.phone);
-  s.level = role === 'filleul' ? 'L1' : s.level;
-  s.capacity = role === 'parrain' ? String(Math.min(3, Math.max(1, Number(d.capacity) || 1))) : '0';
+  var levels = { filleul: ['L1', 'L2'], parrain: ['L2', 'L3', 'M1', 'M2'], both: ['L2', 'L3', 'M1'] }[role];
+  s.level = levels.indexOf(s.level) !== -1 ? s.level : levels[0];
+  s.capacity = role === 'filleul' ? '0' : String(Math.min(3, Math.max(1, Number(d.capacity) || 1)));
 
   if (!s.firstName || !s.lastName || !s.residence) {
     return { ok: false, error: 'Champs obligatoires manquants' };
   }
   if (!s.phone) return { ok: false, error: 'Numéro WhatsApp ivoirien invalide' };
   var dup = readRows_(SHEET_STUDENTS, STUDENT_COLS).some(function (x) {
-    return x.phone === s.phone && x.role === s.role;
+    return x.phone === s.phone;
   });
-  if (dup) return { ok: false, error: 'Ce numéro WhatsApp est déjà inscrit avec ce rôle.' };
+  if (dup) return { ok: false, error: 'Ce numéro WhatsApp est déjà inscrit. Pour être à la fois filleul·e et parrain, choisis « Les deux » en une seule inscription.' };
 
   sheet_(SHEET_STUDENTS, STUDENT_COLS).appendRow(STUDENT_COLS.map(function (c) { return s[c]; }));
   return { ok: true };

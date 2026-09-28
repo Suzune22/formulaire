@@ -90,3 +90,22 @@ test('grand volume : 300 filleul·es et 150 parrains en moins de 5 s', () => {
   assert.ok(Date.now() - t < 5000);
   assert.strictEqual(r.added.length, 300);
 });
+
+test('un·e L2 « les deux » reçoit un parrain de niveau supérieur et parraine un·e L1', () => {
+  const students = [
+    p('P3', { level: 'L3' }),
+    { id: 'B2', role: 'both', level: 'L2', capacity: 1 },
+    f('F1', { level: 'L1' }),
+  ];
+  const r = M.match(students, [], only('residence', 'same'));
+  assert.strictEqual(r.unmatched.length, 0);
+  assert.deepStrictEqual(Object.fromEntries(r.added.map(x => [x.filleulId, x.parrainId])), { B2: 'P3', F1: 'B2' });
+});
+
+test('un parrain ne peut pas suivre un filleul de même niveau, ni lui-même', () => {
+  const s = only('residence', 'same');
+  assert.strictEqual(M.score(p('a', { level: 'L2' }), f('b', { level: 'L2' }), s).ok, false);
+  const both = { id: 'x', role: 'both', level: 'L2' };
+  assert.strictEqual(M.score(both, both, s).ok, false);
+  assert.strictEqual(M.score(p('a', { level: 'M1' }), f('b', { level: 'L2' }), s).ok, true);
+});
