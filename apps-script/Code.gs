@@ -83,7 +83,7 @@ function register_(d) {
   });
   if (dup) return { ok: false, error: 'Ce numéro WhatsApp est déjà inscrit. Pour être à la fois filleul·e et parrain, choisis « Les deux » en une seule inscription.' };
 
-  sheet_(SHEET_STUDENTS, STUDENT_COLS).appendRow(STUDENT_COLS.map(function (c) { return s[c]; }));
+  sheet_(SHEET_STUDENTS, STUDENT_COLS).appendRow(STUDENT_COLS.map(function (c) { return asText_(s[c]); }));
   return { ok: true };
 }
 
@@ -95,6 +95,7 @@ function readSettings_() {
 
 function parseStudent_(s) {
   s.capacity = Number(s.capacity) || 0;
+  s.phone = normalizePhone_(s.phone) || s.phone;
   LIST_COLS.forEach(function (c) { s[c] = s[c] ? s[c].split(/\s*;\s*/) : []; });
   return s;
 }
@@ -138,9 +139,16 @@ function readRows_(name, cols) {
   var sh = sheet_(name, cols);
   var last = sh.getLastRow();
   if (last < 2) return [];
-  return sh.getRange(2, 1, last - 1, cols.length).getValues().map(function (row) {
+  var range = sh.getRange(2, 1, last - 1, cols.length);
+  var formulas = range.getFormulas();
+  return range.getValues().map(function (row, r) {
     var o = {};
-    cols.forEach(function (c, i) { o[c] = String(row[i]); });
+    cols.forEach(function (c, i) {
+      o[c] = String(row[i]);
+      // Anciennes lignes : « +225 07… » avait été pris pour une formule (#ERROR!).
+      // On récupère le texte saisi à partir de la formule.
+      if (formulas[r][i] && /^#/.test(o[c])) o[c] = formulas[r][i].replace(/^=/, '');
+    });
     return o;
   });
 }
@@ -151,9 +159,16 @@ function writeRows_(name, cols, rows) {
   if (last > 1) sh.getRange(2, 1, last - 1, cols.length).clearContent();
   if (!rows.length) return;
   var values = rows.map(function (r) {
-    return cols.map(function (c) { return String(r[c] == null ? '' : r[c]); });
+    return cols.map(function (c) { return asText_(r[c]); });
   });
   sh.getRange(2, 1, values.length, cols.length).setNumberFormat('@').setValues(values);
+}
+
+// Force Sheets à garder la valeur comme du texte : sans l'apostrophe, « +225 07… »
+// ou un texte commençant par « = » serait interprété comme une formule.
+function asText_(v) {
+  v = String(v == null ? '' : v);
+  return /^[=+\-@]/.test(v) ? "'" + v : v;
 }
 
 function json_(obj) {
