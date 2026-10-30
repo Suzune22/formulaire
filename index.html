@@ -203,6 +203,17 @@
   .why span{ font-size:.72rem; padding:3px 8px; border-radius:999px; background:var(--surface-2); color:var(--ink-soft); }
   .why span.neg{ color:var(--danger); }
   .pair-foot{ display:flex; justify-content:space-between; align-items:center; gap:8px; border-top:1px dashed var(--border); padding-top:8px; }
+  .card-title{ margin:0 0 4px; font-size:1.35rem; }
+  .lookup-row{ display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
+  .lookup-row .field{ flex:1 1 220px; }
+  #lookupResult{ margin-top:18px; display:flex; flex-direction:column; gap:12px; }
+  .match{
+    border:1px solid var(--border); border-radius:12px; padding:14px 16px; background:var(--paper);
+    display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+  }
+  .match .who .nm{ font-size:1.05rem; }
+  .publish{ display:inline-flex; align-items:center; gap:7px; font-size:.84rem; font-weight:600; color:var(--ink-soft); cursor:pointer; }
+  .publish:has(input:checked){ color:var(--accent-2); }
   .pair-actions{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
   .score{ font-size:.78rem; color:var(--ink-soft); font-variant-numeric:tabular-nums; }
 
@@ -260,7 +271,8 @@
     </div>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" id="tab-inscription" aria-controls="view-inscription" aria-selected="true" type="button">Inscription</button>
-      <button class="tab" role="tab" id="tab-binomes" aria-controls="view-binomes" aria-selected="false" type="button">Binômes</button>
+      <button class="tab" role="tab" id="tab-resultats" aria-controls="view-resultats" aria-selected="false" type="button">Résultats</button>
+      <button class="tab" role="tab" id="tab-binomes" aria-controls="view-binomes" aria-selected="false" type="button">Organisateurs</button>
     </div>
   </header>
 
@@ -388,6 +400,22 @@
     </div>
   </main>
 
+  <!-- ================= Résultats (étudiants) ================= -->
+  <main id="view-resultats" role="tabpanel" aria-labelledby="tab-resultats" hidden>
+    <div class="form-card">
+      <h2 class="card-title">Mon binôme</h2>
+      <p class="lead">Entre le numéro WhatsApp que tu as utilisé pour t'inscrire : tu verras uniquement ton binôme.</p>
+      <form id="lookupForm" class="lookup-row" novalidate>
+        <div class="field">
+          <label for="lookupPhone">Mon numéro WhatsApp</label>
+          <input id="lookupPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="07 00 00 00 00" required>
+        </div>
+        <button class="btn primary" type="submit" id="lookupBtn">Voir mon binôme</button>
+      </form>
+      <div id="lookupResult" aria-live="polite"></div>
+    </div>
+  </main>
+
   <!-- ================= Binômes (organisateurs) ================= -->
   <main id="view-binomes" role="tabpanel" aria-labelledby="tab-binomes" hidden>
     <div class="banner" id="modeBanner" hidden></div>
@@ -437,6 +465,7 @@
         <button class="btn primary" id="runBtn" type="button">Lancer le bot</button>
         <button class="btn" id="rerunBtn" type="button">Tout recalculer</button>
         <button class="btn" id="exportBtn" type="button">Exporter (CSV)</button>
+        <label class="publish"><input type="checkbox" id="publishToggle"> Résultats visibles par les étudiants</label>
         <span class="spacer"></span>
         <button class="btn" id="reloadBtn" type="button">Actualiser</button>
         <button class="btn danger" id="resetBtn" type="button">Dissoudre tous les binômes</button>
@@ -506,7 +535,17 @@
     });
   }
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
-  function fullName(s){ return ((s.firstName||'') + ' ' + (s.lastName||'')).trim() || 'Sans nom'; }
+  // Nom puis prénoms, comme dans le formulaire, pour que l'ordre alphabétique se voie.
+  function fullName(s){ return ((s.lastName||'') + ' ' + (s.firstName||'')).trim() || 'Sans nom'; }
+  // Tri alphabétique par nom puis prénoms, sans tenir compte des accents ni des majuscules.
+  function byName(a, b){
+    var opts = { sensitivity: 'base' };
+    return String(a.lastName||'').localeCompare(String(b.lastName||''), 'fr', opts)
+      || String(a.firstName||'').localeCompare(String(b.firstName||''), 'fr', opts);
+  }
+  function byPairNames(x, y){
+    return byName(byId(x.parrainId), byId(y.parrainId)) || byName(byId(x.filleulId), byId(y.filleulId));
+  }
   function options(list){ return list.map(function(v){ return '<option value="'+escapeHtml(v)+'">'; }).join(''); }
   function picks(name, list){
     return list.map(function(v){ return '<label class="pick"><input type="checkbox" name="'+name+'" value="'+escapeHtml(v)+'"><span>'+escapeHtml(v)+'</span></label>'; }).join('');
@@ -590,6 +629,22 @@
       if (!API_URL) return localWrite(function(db){ db.settings = settings; });
       return apiPost({ action:'saveSettings', key:getAdminKey(), settings: settings });
     },
+    lookup: function(phone){
+      if (!API_URL){
+        var db = readLocal();
+        if (!(db.settings || {}).resultsPublished) return Promise.resolve({ published: false });
+        var me = db.students.filter(function(s){ return s.phone === phone; })[0];
+        if (!me) return Promise.resolve({ published: true, found: false });
+        var byIdLocal = {};
+        db.students.forEach(function(s){ byIdLocal[s.id] = s; });
+        return Promise.resolve({
+          published: true, found: true, me: me,
+          parrains: db.pairs.filter(function(p){ return p.filleulId === me.id && byIdLocal[p.parrainId]; }).map(function(p){ return byIdLocal[p.parrainId]; }),
+          filleuls: db.pairs.filter(function(p){ return p.parrainId === me.id && byIdLocal[p.filleulId]; }).map(function(p){ return byIdLocal[p.filleulId]; })
+        });
+      }
+      return apiGet({ action:'lookup', phone: phone });
+    },
     removeStudent: function(id){
       if (!API_URL) return localWrite(function(db){
         db.students = db.students.filter(function(s){ return s.id !== id; });
@@ -601,7 +656,7 @@
 
   /* ---------------- Onglets ---------------- */
 
-  var tabs = { inscription: $('tab-inscription'), binomes: $('tab-binomes') };
+  var tabs = { inscription: $('tab-inscription'), resultats: $('tab-resultats'), binomes: $('tab-binomes') };
   function showTab(name){
     Object.keys(tabs).forEach(function(k){
       tabs[k].setAttribute('aria-selected', String(k === name));
@@ -611,6 +666,7 @@
     if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
   }
   tabs.inscription.addEventListener('click', function(){ showTab('inscription'); });
+  tabs.resultats.addEventListener('click', function(){ showTab('resultats'); });
   tabs.binomes.addEventListener('click', function(){ showTab('binomes'); });
 
   /* ---------------- Formulaire ---------------- */
@@ -739,6 +795,8 @@
       });
       admin.pairs = db.pairs || [];
       admin.settings = db.settings || {};
+      admin.savedSettings = db.settings || {};
+      $('publishToggle').checked = !!admin.savedSettings.resultsPublished;
       showLock(false);
       renderSettings();
       renderAdmin();
@@ -797,7 +855,8 @@
       };
     });
     var schools = $('schoolsInput').value.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
-    return { criteria: crit, schools: schools, university: $('universityInput').value.trim(), program: $('programInput').value.trim() };
+    return { criteria: crit, schools: schools, university: $('universityInput').value.trim(), program: $('programInput').value.trim(),
+      resultsPublished: !!(admin.savedSettings || {}).resultsPublished };
   }
 
   $('criteriaList').addEventListener('input', function(e){
@@ -827,11 +886,26 @@
     btn.disabled = true;
     store.saveSettings(settings).then(function(){
       admin.settings = settings;
+      admin.savedSettings = settings;
       $('settingsMsg').textContent = 'Réglages enregistrés';
       applyConfig(settings);
     }).catch(function(err){
       $('settingsMsg').textContent = 'Échec : ' + err.message;
     }).then(function(){ btn.disabled = false; });
+  });
+
+  // Publication des résultats : sans elle, l'onglet Résultats ne montre rien aux étudiants.
+  $('publishToggle').addEventListener('change', function(){
+    var box = this;
+    var settings = Object.assign({}, admin.savedSettings || {}, { resultsPublished: box.checked });
+    box.disabled = true;
+    store.saveSettings(settings).then(function(){
+      admin.savedSettings = settings;
+      admin.settings = Object.assign({}, admin.settings, { resultsPublished: box.checked });
+    }).catch(function(err){
+      box.checked = !box.checked;
+      showAdminError('La publication des résultats a échoué (' + err.message + ').');
+    }).then(function(){ box.disabled = false; });
   });
 
   /* ----- Binômes ----- */
@@ -840,11 +914,11 @@
     var st = criteriaSettings();
     var parrains = admin.students.filter(M.isParrain);
     var filleuls = admin.students.filter(M.isFilleul);
-    var pairs = admin.pairs.filter(function(p){ return byId(p.parrainId) && byId(p.filleulId); });
+    var pairs = admin.pairs.filter(function(p){ return byId(p.parrainId) && byId(p.filleulId); }).sort(byPairNames);
     var load = {}, matched = {};
     pairs.forEach(function(p){ load[p.parrainId] = (load[p.parrainId]||0)+1; matched[p.filleulId] = true; });
     var totalCap = parrains.reduce(function(n, p){ return n + M.capacityOf(p); }, 0);
-    var unmatched = filleuls.filter(function(f){ return !matched[f.id]; });
+    var unmatched = filleuls.filter(function(f){ return !matched[f.id]; }).sort(byName);
     var regions = {};
     admin.students.forEach(function(s){ if (s.region) regions[M.norm(s.region)] = 1; });
 
@@ -902,7 +976,7 @@
     $('allCount').textContent = admin.students.length ? '· ' + admin.students.length : '';
     $('allList').innerHTML = admin.students.length ?
       '<div class="table-wrap"><table><thead><tr><th>Nom</th><th>Rôle</th><th>Commune</th><th>Provenance</th><th>Contact</th><th></th></tr></thead><tbody>' +
-      admin.students.slice().sort(function(a,b){ return a.role.localeCompare(b.role) || fullName(a).localeCompare(fullName(b)); }).map(function(s){
+      admin.students.slice().sort(byName).map(function(s){
         var isP = M.isParrain(s);
         var capTxt = ' · ' + (load[s.id]||0) + '/' + M.capacityOf(s) + ' filleul·e' + (M.capacityOf(s) > 1 ? 's' : '');
         var roleTxt = s.role === 'both' ? 'Filleul·e et parrain · ' + escapeHtml(s.level) + capTxt
@@ -1039,7 +1113,7 @@
   $('exportBtn').addEventListener('click', function(){
     var st = criteriaSettings();
     var rows = [['Parrain / marraine','WhatsApp parrain','Niveau','Commune parrain','Provenance parrain','Filleul·e','WhatsApp filleul','Commune filleul','Provenance filleul','Points communs','Score']];
-    admin.pairs.forEach(function(pr){
+    admin.pairs.filter(function(pr){ return byId(pr.parrainId) && byId(pr.filleulId); }).sort(byPairNames).forEach(function(pr){
       var p = byId(pr.parrainId), f = byId(pr.filleulId);
       if (!p || !f) return;
       var c = M.score(p, f, st);
@@ -1055,6 +1129,53 @@
     a.download = 'binomes-parrainage.csv';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  });
+
+  /* ---------------- Résultats ---------------- */
+
+  // myRole : rôle de la personne qui consulte vis-à-vis de ce binôme.
+  function lookupCard(person, tag, me, myRole){
+    var text = 'Bonjour ' + person.firstName + ', je suis ' + me.firstName + ', ' +
+      (myRole === 'filleul' ? 'ton filleul / ta filleule' : 'ton parrain / ta marraine') + ' du parrainage. Ravi·e de faire ta connaissance !';
+    return '<div class="match">' +
+      '<div class="who '+(myRole === 'filleul' ? 'parrain' : 'filleul')+'"><div class="tag">'+escapeHtml(tag)+' · '+escapeHtml(person.level || '')+'</div>' +
+        '<div class="nm">'+escapeHtml(fullName(person))+'</div>' +
+        (person.residence ? '<div class="sub">Habite à '+escapeHtml(person.residence)+'</div>' : '') +
+        '<div class="sub">'+escapeHtml(person.phone)+'</div></div>' +
+      '<a class="btn primary small" href="'+escapeHtml(waLink(person.phone) + '?text=' + encodeURIComponent(text))+'" target="_blank" rel="noopener">Écrire sur WhatsApp</a>' +
+    '</div>';
+  }
+
+  $('lookupForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var out = $('lookupResult');
+    var phone = normalizePhone($('lookupPhone').value);
+    if (!phone){
+      out.innerHTML = '<div class="form-msg err">Indique un numéro WhatsApp ivoirien valide (10 chiffres, ex. 07 00 00 00 00).</div>';
+      return;
+    }
+    var btn = $('lookupBtn');
+    btn.disabled = true;
+    out.innerHTML = '<p class="muted"><span class="spinner"></span> Recherche…</p>';
+    store.lookup(phone).then(function(r){
+      if (!r.published){
+        out.innerHTML = '<div class="banner">Les binômes ne sont pas encore publiés. Reviens un peu plus tard !</div>';
+      } else if (!r.found){
+        out.innerHTML = '<div class="form-msg err">Aucune inscription trouvée avec ce numéro. Vérifie qu\'il s\'agit bien du numéro utilisé lors de ton inscription.</div>';
+      } else {
+        var html = '<p style="margin:0;">Bonjour <strong>' + escapeHtml(r.me.firstName) + '</strong> !</p>';
+        (r.parrains || []).forEach(function(p){ html += lookupCard(p, 'Ton parrain / ta marraine', r.me, 'filleul'); });
+        (r.filleuls || []).sort(byName).forEach(function(f){ html += lookupCard(f, (r.filleuls.length > 1 ? 'Un·e de tes filleul·es' : 'Ton ou ta filleul·e'), r.me, 'parrain'); });
+        if (!(r.parrains || []).length && !(r.filleuls || []).length){
+          html += '<div class="banner">Tu n\'as pas encore de binôme. Les organisateurs te contacteront dès qu\'un binôme te sera attribué.</div>';
+        } else if (M.isFilleul(r.me) && !(r.parrains || []).length){
+          html += '<div class="banner">Tu n\'as pas encore de parrain : les organisateurs te contacteront dès qu\'un parrain te sera attribué.</div>';
+        }
+        out.innerHTML = html;
+      }
+    }).catch(function(err){
+      out.innerHTML = '<div class="form-msg err">La recherche a échoué (' + escapeHtml(err.message) + '). Réessaie dans un instant.</div>';
+    }).then(function(){ btn.disabled = false; });
   });
 
   /* ---------------- Partage ---------------- */
@@ -1084,7 +1205,7 @@
     } catch(e){ $('shareUrl').select(); }
   });
 
-  showTab(location.hash === '#binomes' ? 'binomes' : 'inscription');
+  showTab(location.hash === '#binomes' ? 'binomes' : location.hash === '#resultats' ? 'resultats' : 'inscription');
 })();
 </script>
 </body>

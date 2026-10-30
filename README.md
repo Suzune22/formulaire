@@ -8,7 +8,8 @@ Un formulaire d'inscription et un bot qui forment les binômes de parrainage ent
   - **Les deux** : étudiant·e (le plus souvent de L2) qui n'a pas de parrain, en cherche un, et veut aussi parrainer un·e L1.
 
   On y indique ensuite son nom et ses prénoms, son numéro WhatsApp (ivoirien, à 10 chiffres), sa commune à Abidjan, sa région et sa ville d'origine, son lycée, sa série de BAC, ses langues, ses centres d'intérêt et comment on préfère se rencontrer. Un parrain peut accepter jusqu'à 3 filleul·es. Un même numéro WhatsApp ne peut s'inscrire qu'une fois.
-- **Onglet Binômes** (`index.html#binomes`) : l'espace des organisateurs. On y trouve les réglages du bot, le nom de l'université et de la filière affichés sur le formulaire, et la liste des lycées proposés. On peut y lancer le bot, associer les étudiants à la main, retirer un inscrit et exporter en CSV. Pour chaque binôme, des boutons **WhatsApp parrain** et **WhatsApp filleul** ouvrent un message prêt à envoyer.
+- **Onglet Résultats** (`index.html#resultats`) : chaque étudiant·e entre son numéro WhatsApp et voit **uniquement son binôme** : son parrain ou sa marraine, et ses filleul·es, avec un bouton pour leur écrire sur WhatsApp. Rien ne s'affiche tant que les organisateurs n'ont pas coché « Résultats visibles par les étudiants ».
+- **Onglet Organisateurs** (`index.html#binomes`) : l'espace des organisateurs. On y trouve les réglages du bot, le nom de l'université et de la filière affichés sur le formulaire, et la liste des lycées proposés. On peut y lancer le bot, associer les étudiants à la main, retirer un inscrit et exporter en CSV. Pour chaque binôme, des boutons **WhatsApp parrain** et **WhatsApp filleul** ouvrent un message prêt à envoyer.
 - **Partager le formulaire** : affiche un QR code et le lien direct vers l'inscription.
 
 ## Le bot d'appariement
