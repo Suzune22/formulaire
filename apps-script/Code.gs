@@ -21,6 +21,8 @@ function doGet(e) {
   var p = (e && e.parameter) || {};
   // Réglages publics : le formulaire en a besoin (université, filière, lycées).
   if (p.action === 'config') return json_({ ok: true, settings: readSettings_() });
+  // Résultats publics : un·e étudiant·e ne voit que son propre binôme, à partir de son numéro.
+  if (p.action === 'lookup') return json_(lookup_(p.phone));
   if (!checkKey_(p.key)) return json_({ ok: false, error: 'Code organisateur invalide' });
   return json_({
     ok: true,
@@ -85,6 +87,32 @@ function register_(d) {
 
   sheet_(SHEET_STUDENTS, STUDENT_COLS).appendRow(STUDENT_COLS.map(function (c) { return asText_(s[c]); }));
   return { ok: true };
+}
+
+function lookup_(rawPhone) {
+  if (!readSettings_().resultsPublished) return { ok: true, published: false };
+  var phone = normalizePhone_(rawPhone);
+  if (!phone) return { ok: false, error: 'Numéro WhatsApp ivoirien invalide' };
+  var students = readRows_(SHEET_STUDENTS, STUDENT_COLS).map(parseStudent_);
+  var me = null, byId = {};
+  students.forEach(function (s) {
+    byId[s.id] = s;
+    if (s.phone === phone) me = s;
+  });
+  if (!me) return { ok: true, published: true, found: false };
+  var pairs = readRows_(SHEET_PAIRS, PAIR_COLS);
+  // Seules les informations utiles pour se contacter sont renvoyées.
+  function contact(s) {
+    return { firstName: s.firstName, lastName: s.lastName, level: s.level, phone: s.phone, residence: s.residence };
+  }
+  return {
+    ok: true, published: true, found: true,
+    me: { firstName: me.firstName, role: me.role, level: me.level },
+    parrains: pairs.filter(function (x) { return x.filleulId === me.id && byId[x.parrainId]; })
+      .map(function (x) { return contact(byId[x.parrainId]); }),
+    filleuls: pairs.filter(function (x) { return x.parrainId === me.id && byId[x.filleulId]; })
+      .map(function (x) { return contact(byId[x.filleulId]); })
+  };
 }
 
 function readSettings_() {
