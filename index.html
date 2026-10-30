@@ -214,6 +214,13 @@
   .match .who .nm{ font-size:1.05rem; }
   .publish{ display:inline-flex; align-items:center; gap:7px; font-size:.84rem; font-weight:600; color:var(--ink-soft); cursor:pointer; }
   .publish:has(input:checked){ color:var(--accent-2); }
+  .admin-search{ position:relative; margin:4px 0 8px; }
+  .admin-search svg{ position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--ink-soft); }
+  .admin-search input{
+    width:100%; font:inherit; font-size:.95rem; padding:11px 14px 11px 40px; border-radius:999px;
+    border:1px solid var(--border); background:var(--surface); color:var(--ink);
+  }
+  #searchInfo{ margin:0 0 14px; }
   .pair-actions{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
   .score{ font-size:.78rem; color:var(--ink-soft); font-variant-numeric:tabular-nums; }
 
@@ -486,6 +493,12 @@
         <button class="btn danger" id="resetBtn" type="button">Dissoudre tous les binômes</button>
       </div>
       <div class="banner ok" id="botResult" hidden></div>
+
+      <div class="admin-search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="adminSearch" type="search" placeholder="Rechercher un nom ou un numéro de téléphone…" autocomplete="off" aria-label="Rechercher un nom ou un numéro de téléphone">
+      </div>
+      <p class="muted" id="searchInfo" hidden></p>
 
       <section class="block">
         <h2>Binômes <span class="n" id="pairsCount"></span></h2>
@@ -937,7 +950,36 @@
 
   /* ----- Binômes ----- */
 
+  // Recherche : par nom (dans n'importe quel ordre, sans accents) ou par numéro
+  // (avec ou sans +225, espaces ignorés).
+  function searchQuery(){ return ($('adminSearch').value || '').trim(); }
+  function matchesSearch(s, q){
+    if (!q) return true;
+    var ok = true, tested = false;
+    var digits = q.replace(/\D/g, '');
+    if (digits.length >= 2){
+      tested = true;
+      var phone = String(s.phone || '').replace(/\D/g, '');
+      var local = phone.indexOf('225') === 0 ? phone.slice(3) : phone;
+      var d = digits.indexOf('225') === 0 && digits.length > 10 ? digits.slice(3) : digits;
+      ok = phone.indexOf(digits) !== -1 || local.indexOf(d) !== -1;
+    }
+    var words = M.norm(q.replace(/[0-9+]/g, ' ')).split(' ').filter(Boolean);
+    if (words.length){
+      tested = true;
+      var name = M.norm((s.lastName || '') + ' ' + (s.firstName || ''));
+      ok = ok && words.every(function(w){ return name.indexOf(w) !== -1; });
+    }
+    return tested && ok;
+  }
+  function countTxt(shown, total, q){
+    if (!total) return '';
+    return q ? '· ' + shown + ' sur ' + total : '· ' + total;
+  }
+  function noMatch(q){ return '<p class="muted">Aucun résultat pour « ' + escapeHtml(q) + ' ».</p>'; }
+
   function renderAdmin(){
+    var q = searchQuery();
     var st = criteriaSettings();
     var parrains = admin.students.filter(M.isParrain);
     var filleuls = admin.students.filter(M.isFilleul);
@@ -962,8 +1004,9 @@
     $('resetBtn').disabled = !pairs.length;
     $('exportBtn').disabled = !pairs.length;
 
-    $('pairsCount').textContent = pairs.length ? '· ' + pairs.length : '';
-    $('pairsList').innerHTML = pairs.length ? pairs.map(function(pr){
+    var pairsShown = pairs.filter(function(pr){ return matchesSearch(byId(pr.parrainId), q) || matchesSearch(byId(pr.filleulId), q); });
+    $('pairsCount').textContent = countTxt(pairsShown.length, pairs.length, q);
+    $('pairsList').innerHTML = (pairs.length && !pairsShown.length) ? noMatch(q) : pairs.length ? pairsShown.map(function(pr){
       var p = byId(pr.parrainId), f = byId(pr.filleulId);
       var c = M.score(p, f, st);
       return '<article class="pair">' +
@@ -979,7 +1022,8 @@
     }).join('') : '<p class="muted">Aucun binôme pour l\'instant. Règle les critères puis clique sur « Lancer le bot », ou associe les filleul·es à la main ci-dessous.</p>';
 
     var available = parrains.filter(function(p){ return (load[p.id]||0) < M.capacityOf(p); });
-    $('unmatchedCount').textContent = unmatched.length ? '· ' + unmatched.length : '';
+    var unmatchedShown = unmatched.filter(function(f){ return matchesSearch(f, q); });
+    $('unmatchedCount').textContent = countTxt(unmatchedShown.length, unmatched.length, q);
     if (!filleuls.length){
       $('unmatchedList').innerHTML = '<p class="muted">Aucun·e filleul·e inscrit·e.</p>';
     } else if (!unmatched.length){
@@ -988,7 +1032,8 @@
       var missing = Math.max(0, unmatched.length - available.reduce(function(n, p){ return n + M.capacityOf(p) - (load[p.id]||0); }, 0));
       $('unmatchedList').innerHTML = (missing ? '<div class="banner">Il manque <strong>' + missing + ' place' + (missing > 1 ? 's' : '') + '</strong> chez les parrains. Solutions : relance le bot avec des <strong>places de renfort</strong> (réglages du bot), associe un·e filleul·e à un parrain déjà complet ci-dessous, ou partage le formulaire pour recruter d\'autres parrains (L3, master, ou L2 en « Les deux »).</div>' : '') +
         '<div class="table-wrap"><table><thead><tr><th>Filleul·e</th><th>Commune</th><th>Provenance</th><th>Associer à</th></tr></thead><tbody>' +
-        unmatched.map(function(f){
+        (unmatchedShown.length ? '' : '<tr><td colspan="4">' + noMatch(q) + '</td></tr>') +
+        unmatchedShown.map(function(f){
           var opts = parrains.filter(function(p){ return p.id !== f.id; }).map(function(p){ return { p:p, c:M.score(p, f, st), full: (load[p.id]||0) >= M.capacityOf(p) }; })
             .sort(function(a,b){ return (a.full - b.full) || (b.c.ok - a.c.ok) || (b.c.score - a.c.score); })
             .map(function(o){
@@ -1003,10 +1048,12 @@
         }).join('') + '</tbody></table></div>';
     }
 
-    $('allCount').textContent = admin.students.length ? '· ' + admin.students.length : '';
+    var allShown = admin.students.filter(function(s){ return matchesSearch(s, q); });
+    $('allCount').textContent = countTxt(allShown.length, admin.students.length, q);
     $('allList').innerHTML = admin.students.length ?
       '<div class="table-wrap"><table><thead><tr><th>Nom</th><th>Rôle</th><th>Commune</th><th>Provenance</th><th>Contact</th><th></th></tr></thead><tbody>' +
-      admin.students.slice().sort(byName).map(function(s){
+      (allShown.length ? '' : '<tr><td colspan="6">' + noMatch(q) + '</td></tr>') +
+      allShown.sort(byName).map(function(s){
         var isP = M.isParrain(s);
         var capTxt = ' · ' + (load[s.id]||0) + '/' + M.capacityOf(s) + ' filleul·e' + (Math.max(M.capacityOf(s), load[s.id]||0) > 1 ? 's' : '') +
           ((load[s.id]||0) > M.capacityOf(s) ? ' (renfort)' : '');
@@ -1117,6 +1164,12 @@
   });
 
   $('reloadBtn').addEventListener('click', reloadAdmin);
+  $('adminSearch').addEventListener('input', function(){
+    var q = searchQuery();
+    $('searchInfo').hidden = !q;
+    $('searchInfo').textContent = q ? 'Filtre actif : seuls les inscrits qui correspondent à « ' + q + ' » sont affichés.' : '';
+    renderAdmin();
+  });
 
   $('view-binomes').addEventListener('click', function(e){
     var un = e.target.closest('[data-unpair]');
