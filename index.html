@@ -212,6 +212,22 @@
     display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
   }
   .match .who .nm{ font-size:1.05rem; }
+  /* Annonce des résultats */
+  .suspense{ text-align:center; padding:26px 10px 18px; }
+  .suspense .big{ font-family:"Fraunces", Georgia, serif; font-size:1.45rem; font-weight:600; }
+  .suspense .dots{ display:inline-flex; gap:6px; margin-top:14px; }
+  .suspense .dots span{ width:10px; height:10px; border-radius:50%; background:var(--accent); animation:bounce 1s ease-in-out infinite; }
+  .suspense .dots span:nth-child(2){ animation-delay:.15s; }
+  .suspense .dots span:nth-child(3){ animation-delay:.3s; }
+  @keyframes bounce{ 0%,80%,100%{ transform:translateY(0); opacity:.4; } 40%{ transform:translateY(-10px); opacity:1; } }
+  .reveal{ animation:pop .65s cubic-bezier(.2,.9,.3,1.25) both; }
+  @keyframes pop{ from{ opacity:0; transform:translateY(18px) scale(.9); } to{ opacity:1; transform:none; } }
+  .match.reveal{ box-shadow:0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); animation:pop .65s cubic-bezier(.2,.9,.3,1.25) both, glow 1.6s ease-out .6s 1; }
+  @keyframes glow{ 0%{ box-shadow:0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); } 100%{ box-shadow:0 0 0 14px transparent; } }
+  .confetti{ position:fixed; inset:0; pointer-events:none; z-index:50; }
+  @media (prefers-reduced-motion: reduce){
+    .reveal, .match.reveal, .suspense .dots span{ animation:none; }
+  }
   .publish{ display:inline-flex; align-items:center; gap:7px; font-size:.84rem; font-weight:600; color:var(--ink-soft); cursor:pointer; }
   .publish:has(input:checked){ color:var(--accent-2); }
   .admin-search{ position:relative; margin:4px 0 8px; }
@@ -1237,8 +1253,47 @@
     '</div>';
   }
 
+  var reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var lookupSeq = 0;
+
+  // Pluie de confettis, sans bibliothèque. Se retire toute seule après ~3 s.
+  function confetti(){
+    if (reduceMotion) return;
+    var canvas = document.createElement('canvas');
+    canvas.className = 'confetti';
+    document.body.appendChild(canvas);
+    var ctx = canvas.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    var W = canvas.width = innerWidth * dpr, H = canvas.height = innerHeight * dpr;
+    var colors = ['#d0a75c', '#8a6a34', '#3e6b63', '#7fb0a6', '#e18375', '#f2c14e', '#ff8a00', '#009e60'];
+    var parts = [];
+    for (var i = 0; i < 160; i++){
+      parts.push({
+        x: W / 2 + (Math.random() - .5) * W * .3, y: H * .35,
+        vx: (Math.random() - .5) * 18 * dpr, vy: (-Math.random() * 16 - 6) * dpr,
+        w: (6 + Math.random() * 6) * dpr, h: (8 + Math.random() * 8) * dpr,
+        r: Math.random() * Math.PI, vr: (Math.random() - .5) * .3,
+        c: colors[i % colors.length]
+      });
+    }
+    var start = performance.now();
+    (function frame(t){
+      var age = t - start;
+      ctx.clearRect(0, 0, W, H);
+      ctx.globalAlpha = Math.max(0, 1 - Math.max(0, age - 2000) / 1000);
+      parts.forEach(function(p){
+        p.vy += .45 * dpr; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+        ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.r * 2)) + 1);
+        ctx.restore();
+      });
+      if (age < 3000) requestAnimationFrame(frame); else canvas.remove();
+    })(start);
+  }
+
   $('lookupForm').addEventListener('submit', function(e){
     e.preventDefault();
+    var seq = ++lookupSeq;
     var out = $('lookupResult');
     var phone = normalizePhone($('lookupPhone').value);
     if (!phone){
@@ -1254,7 +1309,7 @@
       } else if (!r.found){
         out.innerHTML = '<div class="form-msg err">Aucune inscription trouvée avec ce numéro. Vérifie qu\'il s\'agit bien du numéro utilisé lors de ton inscription.</div>';
       } else {
-        var html = '<p style="margin:0;">Bonjour <strong>' + escapeHtml(r.me.firstName) + '</strong> !</p>';
+        var html = '<p class="reveal" style="margin:0;">Bonjour <strong>' + escapeHtml(r.me.firstName) + '</strong> !</p>';
         (r.parrains || []).forEach(function(p){ html += lookupCard(p, 'Ton parrain / ta marraine', r.me, 'filleul'); });
         (r.filleuls || []).sort(byName).forEach(function(f){ html += lookupCard(f, (r.filleuls.length > 1 ? 'Un·e de tes filleul·es' : 'Ton ou ta filleul·e'), r.me, 'parrain'); });
         if (!(r.parrains || []).length && !(r.filleuls || []).length){
@@ -1262,7 +1317,25 @@
         } else if (M.isFilleul(r.me) && !(r.parrains || []).length){
           html += '<div class="banner">Tu n\'as pas encore de parrain : les organisateurs te contacteront dès qu\'un parrain te sera attribué.</div>';
         }
-        out.innerHTML = html;
+        var hasMatch = (r.parrains || []).length + (r.filleuls || []).length > 0;
+        var reveal = function(){
+          if (seq !== lookupSeq) return;
+          out.innerHTML = html;
+          Array.prototype.forEach.call(out.querySelectorAll('.match'), function(el, i){
+            el.classList.add('reveal');
+            el.style.animationDelay = (250 + i * 350) + 'ms, ' + (850 + i * 350) + 'ms';
+          });
+          if (hasMatch) setTimeout(confetti, 300);
+        };
+        if (hasMatch && !reduceMotion){
+          // Petit suspense avant l'annonce.
+          var plural = (r.parrains || []).length + (r.filleuls || []).length > 1;
+          out.innerHTML = '<div class="suspense reveal"><div class="big">' + escapeHtml(r.me.firstName) + ', ' + (plural ? 'tes binômes sont' : 'ton binôme est') + '…</div>' +
+            '<div class="dots" aria-hidden="true"><span></span><span></span><span></span></div></div>';
+          setTimeout(reveal, 1800);
+        } else {
+          reveal();
+        }
       }
     }).catch(function(err){
       out.innerHTML = '<div class="form-msg err">La recherche a échoué (' + escapeHtml(err.message) + '). Réessaie dans un instant.</div>';
