@@ -138,3 +138,21 @@ test('places de renfort : les règles de niveau restent respectées', () => {
   const r = M.matchAll(students, [], only('residence', 'same'), { extraSlots: 2 });
   assert.deepStrictEqual(r.unmatched.map(x => x.id), ['F2']);
 });
+
+test('renforts « autant que nécessaire » : 1 parrain pour 7 filleul·es', () => {
+  const students = [p('P1', { capacity: 1 })];
+  for (let i = 1; i <= 7; i++) students.push(f('F' + i));
+  const r = M.matchAll(students, [], only('residence', 'same'), { extraSlots: -1 });
+  assert.strictEqual(r.unmatched.length, 0);
+  assert.strictEqual(r.added.length, 7);
+});
+
+test('renforts « autant que nécessaire » : répartition équitable et règles de niveau respectées', () => {
+  const students = [p('P1', { capacity: 1, level: 'L3' }), p('P2', { capacity: 1, level: 'L3' }), f('X', { level: 'L3' })];
+  for (let i = 1; i <= 8; i++) students.push(f('F' + i, { level: 'L1' }));
+  const r = M.matchAll(students, [], only('residence', 'same'), { extraSlots: -1 });
+  assert.deepStrictEqual(r.unmatched.map(x => x.id), ['X']);
+  const parParrain = {};
+  r.added.forEach(x => { parParrain[x.parrainId] = (parParrain[x.parrainId] || 0) + 1; });
+  assert.deepStrictEqual(parParrain, { P1: 4, P2: 4 });
+});

@@ -205,7 +205,7 @@
     var free = filleuls.filter(function (f) { return !matched[f.id]; });
     var slots = [];
     parrains.forEach(function (p) {
-      var cap = Math.min(10, capacityOf(p) + (options.capacityBonus || 0));
+      var cap = Math.min(MAX_PER_PARRAIN, capacityOf(p) + (options.capacityBonus || 0));
       for (var k = load[p.id] || 0; k < cap; k++) slots.push({ parrain: p, rank: k });
     });
     if (!free.length || !slots.length) return { added: [], unmatched: free };
@@ -245,6 +245,8 @@
   // Plus forte pénalité par place pour les renforts : on répartit les filleul·es en trop
   // équitablement (chaque parrain en reçoit un de plus avant qu'un autre en reçoive deux).
   var EXTRA_SLOT_PENALTY = 20;
+  // Nombre maximal de filleul·es par parrain, renforts compris.
+  var MAX_PER_PARRAIN = 50;
 
   /*
    * Comme match(), mais s'il reste des filleul·es sans parrain faute de places,
@@ -254,12 +256,34 @@
   function matchAll(students, existingPairs, settings, options) {
     options = options || {};
     var first = match(students, existingPairs, settings, { reset: options.reset });
-    var extra = Math.max(0, Math.min(5, Number(options.extraSlots) || 0));
-    if (!first.unmatched.length || !extra) return first;
+    var wanted = Number(options.extraSlots) || 0;
+    // extraSlots < 0 : « autant que nécessaire », le bot augmente les renforts jusqu'à
+    // ce que tout le monde ait un parrain (ou que seules les règles l'en empêchent).
+    var unlimited = wanted < 0;
+    var extra = unlimited ? 0 : Math.max(0, Math.min(MAX_PER_PARRAIN, wanted));
+    if (!first.unmatched.length || (!unlimited && !extra)) return first;
     var base = (options.reset ? [] : (existingPairs || [])).concat(first.added);
-    var second = match(students, base, settings, { capacityBonus: extra, slotPenalty: EXTRA_SLOT_PENALTY });
-    second.added.forEach(function (a) { a.extra = true; });
-    return { added: first.added.concat(second.added), unmatched: second.unmatched };
+    function pass(bonus) {
+      var r = match(students, base, settings, { capacityBonus: bonus, slotPenalty: EXTRA_SLOT_PENALTY });
+      r.added.forEach(function (a) { a.extra = true; });
+      return r;
+    }
+    var second;
+    if (unlimited) {
+      var nbParrains = students.filter(isParrain).length || 1;
+      extra = Math.max(1, Math.ceil(first.unmatched.length / nbParrains));
+      second = pass(extra);
+      // On augmente tant que ça permet de caser plus de filleul·es.
+      for (var i = 0; i < 20 && second.unmatched.length && extra < MAX_PER_PARRAIN; i++) {
+        var next = pass(extra + 1);
+        if (next.unmatched.length >= second.unmatched.length) break;
+        extra += 1;
+        second = next;
+      }
+    } else {
+      second = pass(extra);
+    }
+    return { added: first.added.concat(second.added), unmatched: second.unmatched, extraUsed: extra };
   }
 
   return {
