@@ -438,6 +438,16 @@
         <div class="bot-body">
           <p class="muted" style="margin:0;">Pour chaque critère, choisis si le bot doit réunir des profils identiques, des profils différents, ou ignorer le critère. Le poids (0 à 10) donne son importance. « Obligatoirement identique » interdit tout binôme qui ne respecte pas le critère.</p>
           <div id="criteriaList"></div>
+          <div class="field">
+            <label for="extraSlotsInput">Places de renfort quand il manque des parrains</label>
+            <select id="extraSlotsInput">
+              <option value="0">Aucune : respecter le nombre choisi par chaque parrain</option>
+              <option value="1">Jusqu'à 1 filleul·e de plus par parrain</option>
+              <option value="2">Jusqu'à 2 filleul·es de plus par parrain</option>
+              <option value="3">Jusqu'à 3 filleul·es de plus par parrain</option>
+            </select>
+            <span class="hint">Utilisé seulement si des filleul·es restent sans parrain. Les filleul·es en trop sont répartis équitablement : chaque parrain en reçoit un de plus avant qu'un autre en reçoive deux.</span>
+          </div>
           <div class="two-col">
             <div class="field">
               <label for="universityInput">Université (affichée sur le formulaire)</label>
@@ -505,7 +515,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- Changer le numéro de version à chaque modification de matching.js, pour que les navigateurs ne gardent pas l'ancienne copie. -->
-<script src="matching.js?v=2"></script>
+<script src="matching.js?v=3"></script>
 <script>
 (function(){
   // URL de déploiement du script apps-script/Code.gs (voir README.md).
@@ -769,6 +779,11 @@
 
   var admin = { students: [], pairs: [], settings: {} };
 
+  // Par défaut, 1 place de renfort : personne ne reste sans parrain faute de places.
+  function extraSlots(){
+    var v = admin.settings.extraSlots;
+    return v === undefined || v === null || v === '' ? 1 : Number(v) || 0;
+  }
   function criteriaSettings(){ return M.settingsWithDefaults(admin.settings.criteria); }
 
   function openAdmin(){
@@ -835,6 +850,7 @@
     }).join('');
     $('schoolsInput').value = (admin.settings.schools || []).join('\n');
     $('universityInput').value = admin.settings.university || '';
+    $('extraSlotsInput').value = String(extraSlots());
     $('programInput').value = admin.settings.program || '';
     renderSummary(st);
   }
@@ -856,7 +872,8 @@
     });
     var schools = $('schoolsInput').value.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
     return { criteria: crit, schools: schools, university: $('universityInput').value.trim(), program: $('programInput').value.trim(),
-      resultsPublished: !!(admin.savedSettings || {}).resultsPublished };
+      resultsPublished: !!(admin.savedSettings || {}).resultsPublished,
+      extraSlots: Number($('extraSlotsInput').value) };
   }
 
   $('criteriaList').addEventListener('input', function(e){
@@ -869,6 +886,11 @@
     admin.settings = Object.assign({}, admin.settings, readSettingsForm());
     renderSummary(criteriaSettings());
     renderAdmin();
+    $('settingsMsg').textContent = 'Modifications non enregistrées';
+  });
+
+  $('extraSlotsInput').addEventListener('change', function(){
+    admin.settings = Object.assign({}, admin.settings, { extraSlots: Number(this.value) });
     $('settingsMsg').textContent = 'Modifications non enregistrées';
   });
 
@@ -942,6 +964,7 @@
       return '<article class="pair">' +
         '<div class="pair-people">' + personBlock(p, 'parrain') + '<div class="link" aria-hidden="true">↔</div>' + personBlock(f, 'filleul') + '</div>' +
         reasonsHtml(c) +
+        ((load[p.id]||0) > M.capacityOf(p) ? '<div class="why"><span class="neg">Parrain en renfort : ' + load[p.id] + ' filleul·es pour ' + M.capacityOf(p) + ' prévu' + (M.capacityOf(p) > 1 ? 's' : '') + '</span></div>' : '') +
         '<div class="pair-foot"><span class="score">Score : ' + c.score + '</span>' +
           '<span class="pair-actions">' +
           '<a class="btn small" href="'+escapeHtml(announce(p, f, 'parrain'))+'" target="_blank" rel="noopener" title="Envoyer le binôme au parrain sur WhatsApp">WhatsApp parrain</a>' +
@@ -957,19 +980,21 @@
     } else if (!unmatched.length){
       $('unmatchedList').innerHTML = '<p class="muted">Tous les filleul·es ont un binôme.</p>';
     } else {
-      $('unmatchedList').innerHTML = (available.length ? '' : '<p class="muted">Plus aucune place chez les parrains : il faut recruter d\'autres parrains ou augmenter leur nombre de filleul·es.</p>') +
+      var missing = Math.max(0, unmatched.length - available.reduce(function(n, p){ return n + M.capacityOf(p) - (load[p.id]||0); }, 0));
+      $('unmatchedList').innerHTML = (missing ? '<div class="banner">Il manque <strong>' + missing + ' place' + (missing > 1 ? 's' : '') + '</strong> chez les parrains. Solutions : relance le bot avec des <strong>places de renfort</strong> (réglages du bot), associe un·e filleul·e à un parrain déjà complet ci-dessous, ou partage le formulaire pour recruter d\'autres parrains (L3, master, ou L2 en « Les deux »).</div>' : '') +
         '<div class="table-wrap"><table><thead><tr><th>Filleul·e</th><th>Commune</th><th>Provenance</th><th>Associer à</th></tr></thead><tbody>' +
         unmatched.map(function(f){
-          var opts = available.filter(function(p){ return p.id !== f.id; }).map(function(p){ return { p:p, c:M.score(p, f, st) }; })
-            .sort(function(a,b){ return (b.c.ok - a.c.ok) || (b.c.score - a.c.score); })
+          var opts = parrains.filter(function(p){ return p.id !== f.id; }).map(function(p){ return { p:p, c:M.score(p, f, st), full: (load[p.id]||0) >= M.capacityOf(p) }; })
+            .sort(function(a,b){ return (a.full - b.full) || (b.c.ok - a.c.ok) || (b.c.score - a.c.score); })
             .map(function(o){
               var tag = o.c.ok ? o.c.score : 'incompatible : ' + o.c.blockers.join(', ');
+              if (o.full) tag += ' · complet ' + (load[o.p.id]||0) + '/' + M.capacityOf(o.p) + ', en renfort';
               return '<option value="'+escapeHtml(o.p.id)+'">'+escapeHtml(fullName(o.p))+' ('+escapeHtml(tag)+')</option>';
             }).join('');
           return '<tr><td>'+escapeHtml(fullName(f))+'<div class="sub">'+escapeHtml(f.phone)+'</div></td>' +
             '<td>'+escapeHtml(f.residence)+'</td>' +
             '<td>'+escapeHtml(origin(f))+'<div class="sub">'+escapeHtml(schooling(f))+'</div></td>' +
-            '<td>'+(available.length ? '<select data-assign="'+escapeHtml(f.id)+'" aria-label="Choisir un parrain pour '+escapeHtml(fullName(f))+'"><option value="">Choisir…</option>'+opts+'</select>' : '—')+'</td></tr>';
+            '<td>'+(parrains.length ? '<select data-assign="'+escapeHtml(f.id)+'" aria-label="Choisir un parrain pour '+escapeHtml(fullName(f))+'"><option value="">Choisir…</option>'+opts+'</select>' : '—')+'</td></tr>';
         }).join('') + '</tbody></table></div>';
     }
 
@@ -978,7 +1003,8 @@
       '<div class="table-wrap"><table><thead><tr><th>Nom</th><th>Rôle</th><th>Commune</th><th>Provenance</th><th>Contact</th><th></th></tr></thead><tbody>' +
       admin.students.slice().sort(byName).map(function(s){
         var isP = M.isParrain(s);
-        var capTxt = ' · ' + (load[s.id]||0) + '/' + M.capacityOf(s) + ' filleul·e' + (M.capacityOf(s) > 1 ? 's' : '');
+        var capTxt = ' · ' + (load[s.id]||0) + '/' + M.capacityOf(s) + ' filleul·e' + (Math.max(M.capacityOf(s), load[s.id]||0) > 1 ? 's' : '') +
+          ((load[s.id]||0) > M.capacityOf(s) ? ' (renfort)' : '');
         var roleTxt = s.role === 'both' ? 'Filleul·e et parrain · ' + escapeHtml(s.level) + capTxt
           : isP ? 'Parrain · ' + escapeHtml(s.level) + capTxt
           : 'Filleul·e · ' + escapeHtml(s.level || 'L1');
@@ -1037,13 +1063,18 @@
   }
 
   function runBot(reset){
-    var r = M.match(admin.students, admin.pairs, criteriaSettings(), { reset: reset });
+    var r = M.matchAll(admin.students, admin.pairs, criteriaSettings(), { reset: reset, extraSlots: extraSlots() });
     var base = reset ? [] : admin.pairs;
     var added = r.added.map(function(a){ return newPair(a.parrainId, a.filleulId, a.score); });
+    var extras = r.added.filter(function(a){ return a.extra; }).length;
     var msg = 'Le bot a formé ' + added.length + (added.length > 1 ? ' binômes' : ' binôme') + '.';
+    if (extras){
+      msg += ' Dont ' + extras + ' grâce aux places de renfort (parrains qui reçoivent plus de filleul·es que prévu).';
+    }
     if (r.unmatched.length){
       msg += ' ' + r.unmatched.length + ' filleul·e' + (r.unmatched.length > 1 ? 's restent' : ' reste') +
-        ' sans binôme : pas assez de places chez les parrains ou aucun parrain qui respecte les critères obligatoires.';
+        ' sans binôme : ' + (extraSlots() ? 'augmente les places de renfort dans les réglages, ' : 'active les places de renfort dans les réglages, ') +
+        'recrute d\'autres parrains, ou vérifie les critères obligatoires et les niveaux.';
     }
     $('botResult').hidden = false;
     $('botResult').textContent = msg;

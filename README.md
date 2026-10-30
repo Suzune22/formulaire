@@ -40,6 +40,8 @@ Quel que soit le réglage, **un parrain a toujours un niveau supérieur à celui
 
 Le bot cherche la répartition qui donne **le meilleur score total** (algorithme hongrois). Il ne se contente donc pas d'associer d'abord les meilleurs couples, ce qui pourrait laisser quelqu'un de côté. Il respecte le nombre de filleul·es accepté par chaque parrain. Il répartit aussi les filleul·es entre les parrains avant de donner un deuxième filleul à l'un d'eux.
 
+**Quand il manque des parrains**, le réglage **Places de renfort** (1 par défaut, de 0 à 3) permet au bot de confier des filleul·es supplémentaires aux parrains, uniquement pour ceux qui resteraient sans binôme. Les renforts sont répartis équitablement : chaque parrain en reçoit un de plus avant qu'un autre en reçoive deux. Ces parrains sont signalés « en renfort » dans l'espace organisateurs. Un organisateur peut aussi associer à la main un·e filleul·e à un parrain déjà complet.
+
 - **Lancer le bot** : complète les binômes existants sans les modifier.
 - **Tout recalculer** : refait toute la répartition avec les réglages actuels.
 
