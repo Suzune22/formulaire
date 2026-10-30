@@ -109,3 +109,32 @@ test('un parrain ne peut pas suivre un filleul de même niveau, ni lui-même', (
   assert.strictEqual(M.score(both, both, s).ok, false);
   assert.strictEqual(M.score(p('a', { level: 'M1' }), f('b', { level: 'L2' }), s).ok, true);
 });
+
+test('places de renfort : tous les filleul·es ont un parrain, répartis équitablement', () => {
+  const students = [p('P1', { capacity: 1 }), p('P2', { capacity: 1 }), f('F1'), f('F2'), f('F3'), f('F4')];
+  const sans = M.matchAll(students, [], only('residence', 'same'), { extraSlots: 0 });
+  assert.strictEqual(sans.unmatched.length, 2);
+  const avec = M.matchAll(students, [], only('residence', 'same'), { extraSlots: 1 });
+  assert.strictEqual(avec.unmatched.length, 0);
+  assert.strictEqual(avec.added.filter(x => x.extra).length, 2);
+  const parParrain = {};
+  avec.added.forEach(x => { parParrain[x.parrainId] = (parParrain[x.parrainId] || 0) + 1; });
+  assert.deepStrictEqual(parParrain, { P1: 2, P2: 2 });
+});
+
+test('places de renfort : un parrain plus compatible ne prend pas tous les renforts', () => {
+  const students = [
+    p('P1', { capacity: 1, residence: 'Marcory' }), p('P2', { capacity: 1, residence: 'Koumassi' }),
+    f('F1', { residence: 'Marcory' }), f('F2', { residence: 'Marcory' }), f('F3', { residence: 'Marcory' }), f('F4', { residence: 'Marcory' }),
+  ];
+  const r = M.matchAll(students, [], only('residence', 'same'), { extraSlots: 3 });
+  const parParrain = {};
+  r.added.forEach(x => { parParrain[x.parrainId] = (parParrain[x.parrainId] || 0) + 1; });
+  assert.deepStrictEqual(parParrain, { P1: 2, P2: 2 });
+});
+
+test('places de renfort : les règles de niveau restent respectées', () => {
+  const students = [p('P1', { level: 'L2', capacity: 1 }), f('F1', { level: 'L1' }), f('F2', { level: 'L2' })];
+  const r = M.matchAll(students, [], only('residence', 'same'), { extraSlots: 2 });
+  assert.deepStrictEqual(r.unmatched.map(x => x.id), ['F2']);
+});

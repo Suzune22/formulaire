@@ -205,7 +205,8 @@
     var free = filleuls.filter(function (f) { return !matched[f.id]; });
     var slots = [];
     parrains.forEach(function (p) {
-      for (var k = load[p.id] || 0; k < capacityOf(p); k++) slots.push({ parrain: p, rank: k });
+      var cap = Math.min(10, capacityOf(p) + (options.capacityBonus || 0));
+      for (var k = load[p.id] || 0; k < cap; k++) slots.push({ parrain: p, rank: k });
     });
     if (!free.length || !slots.length) return { added: [], unmatched: free };
 
@@ -223,7 +224,7 @@
       var row = [];
       for (var j = 0; j < n; j++) {
         if (i >= free.length || j >= slots.length || !scores[i][j].ok) row.push(UNMATCHED);
-        else row.push(-scores[i][j].score + SLOT_PENALTY * slots[j].rank);
+        else row.push(-scores[i][j].score + (options.slotPenalty || SLOT_PENALTY) * slots[j].rank);
       }
       cost.push(row);
     }
@@ -241,8 +242,29 @@
     return { added: added, unmatched: unmatched };
   }
 
+  // Plus forte pénalité par place pour les renforts : on répartit les filleul·es en trop
+  // équitablement (chaque parrain en reçoit un de plus avant qu'un autre en reçoive deux).
+  var EXTRA_SLOT_PENALTY = 20;
+
+  /*
+   * Comme match(), mais s'il reste des filleul·es sans parrain faute de places,
+   * chaque parrain peut en recevoir jusqu'à `extraSlots` de plus que prévu.
+   * Les binômes formés ainsi sont marqués { extra: true }.
+   */
+  function matchAll(students, existingPairs, settings, options) {
+    options = options || {};
+    var first = match(students, existingPairs, settings, { reset: options.reset });
+    var extra = Math.max(0, Math.min(5, Number(options.extraSlots) || 0));
+    if (!first.unmatched.length || !extra) return first;
+    var base = (options.reset ? [] : (existingPairs || [])).concat(first.added);
+    var second = match(students, base, settings, { capacityBonus: extra, slotPenalty: EXTRA_SLOT_PENALTY });
+    second.added.forEach(function (a) { a.extra = true; });
+    return { added: first.added.concat(second.added), unmatched: second.unmatched };
+  }
+
   return {
     LEVELS: LEVELS,
+    matchAll: matchAll,
     isParrain: isParrain,
     isFilleul: isFilleul,
     CRITERIA: CRITERIA,
