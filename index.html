@@ -441,12 +441,17 @@
           <div class="field">
             <label for="extraSlotsInput">Places de renfort quand il manque des parrains</label>
             <select id="extraSlotsInput">
+              <option value="-1">Autant que nécessaire : aucun·e filleul·e sans parrain</option>
               <option value="0">Aucune : respecter le nombre choisi par chaque parrain</option>
               <option value="1">Jusqu'à 1 filleul·e de plus par parrain</option>
               <option value="2">Jusqu'à 2 filleul·es de plus par parrain</option>
               <option value="3">Jusqu'à 3 filleul·es de plus par parrain</option>
+              <option value="4">Jusqu'à 4 filleul·es de plus par parrain</option>
+              <option value="5">Jusqu'à 5 filleul·es de plus par parrain</option>
+              <option value="7">Jusqu'à 7 filleul·es de plus par parrain</option>
+              <option value="10">Jusqu'à 10 filleul·es de plus par parrain</option>
             </select>
-            <span class="hint">Utilisé seulement si des filleul·es restent sans parrain. Les filleul·es en trop sont répartis équitablement : chaque parrain en reçoit un de plus avant qu'un autre en reçoive deux.</span>
+            <span class="hint">Utilisé seulement si des filleul·es restent sans parrain. « Autant que nécessaire » augmente les renforts jusqu'à ce que tout le monde ait un parrain, tant que les niveaux le permettent. Les filleul·es en trop sont répartis équitablement : chaque parrain en reçoit un de plus avant qu'un autre en reçoive deux.</span>
           </div>
           <div class="two-col">
             <div class="field">
@@ -515,7 +520,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- Changer le numéro de version à chaque modification de matching.js, pour que les navigateurs ne gardent pas l'ancienne copie. -->
-<script src="matching.js?v=3"></script>
+<script src="matching.js?v=4"></script>
 <script>
 (function(){
   // URL de déploiement du script apps-script/Code.gs (voir README.md).
@@ -779,10 +784,10 @@
 
   var admin = { students: [], pairs: [], settings: {} };
 
-  // Par défaut, 1 place de renfort : personne ne reste sans parrain faute de places.
+  // Par défaut, « autant que nécessaire » : personne ne reste sans parrain faute de places.
   function extraSlots(){
     var v = admin.settings.extraSlots;
-    return v === undefined || v === null || v === '' ? 1 : Number(v) || 0;
+    return v === undefined || v === null || v === '' ? -1 : Number(v) || 0;
   }
   function criteriaSettings(){ return M.settingsWithDefaults(admin.settings.criteria); }
 
@@ -1073,8 +1078,10 @@
     }
     if (r.unmatched.length){
       msg += ' ' + r.unmatched.length + ' filleul·e' + (r.unmatched.length > 1 ? 's restent' : ' reste') +
-        ' sans binôme : ' + (extraSlots() ? 'augmente les places de renfort dans les réglages, ' : 'active les places de renfort dans les réglages, ') +
-        'recrute d\'autres parrains, ou vérifie les critères obligatoires et les niveaux.';
+        ' sans binôme : ' + (extraSlots() < 0
+          ? 'aucun parrain ne peut les prendre à cause des niveaux (il faut un parrain de niveau supérieur) ou des critères obligatoires. Recrute des parrains de niveau plus élevé, ou assouplis les critères obligatoires.'
+          : (extraSlots() ? 'augmente les places de renfort dans les réglages (« Autant que nécessaire »), ' : 'active les places de renfort dans les réglages, ') +
+            'recrute d\'autres parrains, ou vérifie les critères obligatoires et les niveaux.');
     }
     $('botResult').hidden = false;
     $('botResult').textContent = msg;
