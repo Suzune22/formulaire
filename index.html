@@ -535,7 +535,17 @@
     });
   }
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
-  function fullName(s){ return ((s.firstName||'') + ' ' + (s.lastName||'')).trim() || 'Sans nom'; }
+  // Nom puis prénoms, comme dans le formulaire, pour que l'ordre alphabétique se voie.
+  function fullName(s){ return ((s.lastName||'') + ' ' + (s.firstName||'')).trim() || 'Sans nom'; }
+  // Tri alphabétique par nom puis prénoms, sans tenir compte des accents ni des majuscules.
+  function byName(a, b){
+    var opts = { sensitivity: 'base' };
+    return String(a.lastName||'').localeCompare(String(b.lastName||''), 'fr', opts)
+      || String(a.firstName||'').localeCompare(String(b.firstName||''), 'fr', opts);
+  }
+  function byPairNames(x, y){
+    return byName(byId(x.parrainId), byId(y.parrainId)) || byName(byId(x.filleulId), byId(y.filleulId));
+  }
   function options(list){ return list.map(function(v){ return '<option value="'+escapeHtml(v)+'">'; }).join(''); }
   function picks(name, list){
     return list.map(function(v){ return '<label class="pick"><input type="checkbox" name="'+name+'" value="'+escapeHtml(v)+'"><span>'+escapeHtml(v)+'</span></label>'; }).join('');
@@ -904,11 +914,11 @@
     var st = criteriaSettings();
     var parrains = admin.students.filter(M.isParrain);
     var filleuls = admin.students.filter(M.isFilleul);
-    var pairs = admin.pairs.filter(function(p){ return byId(p.parrainId) && byId(p.filleulId); });
+    var pairs = admin.pairs.filter(function(p){ return byId(p.parrainId) && byId(p.filleulId); }).sort(byPairNames);
     var load = {}, matched = {};
     pairs.forEach(function(p){ load[p.parrainId] = (load[p.parrainId]||0)+1; matched[p.filleulId] = true; });
     var totalCap = parrains.reduce(function(n, p){ return n + M.capacityOf(p); }, 0);
-    var unmatched = filleuls.filter(function(f){ return !matched[f.id]; });
+    var unmatched = filleuls.filter(function(f){ return !matched[f.id]; }).sort(byName);
     var regions = {};
     admin.students.forEach(function(s){ if (s.region) regions[M.norm(s.region)] = 1; });
 
@@ -966,7 +976,7 @@
     $('allCount').textContent = admin.students.length ? '· ' + admin.students.length : '';
     $('allList').innerHTML = admin.students.length ?
       '<div class="table-wrap"><table><thead><tr><th>Nom</th><th>Rôle</th><th>Commune</th><th>Provenance</th><th>Contact</th><th></th></tr></thead><tbody>' +
-      admin.students.slice().sort(function(a,b){ return a.role.localeCompare(b.role) || fullName(a).localeCompare(fullName(b)); }).map(function(s){
+      admin.students.slice().sort(byName).map(function(s){
         var isP = M.isParrain(s);
         var capTxt = ' · ' + (load[s.id]||0) + '/' + M.capacityOf(s) + ' filleul·e' + (M.capacityOf(s) > 1 ? 's' : '');
         var roleTxt = s.role === 'both' ? 'Filleul·e et parrain · ' + escapeHtml(s.level) + capTxt
@@ -1103,7 +1113,7 @@
   $('exportBtn').addEventListener('click', function(){
     var st = criteriaSettings();
     var rows = [['Parrain / marraine','WhatsApp parrain','Niveau','Commune parrain','Provenance parrain','Filleul·e','WhatsApp filleul','Commune filleul','Provenance filleul','Points communs','Score']];
-    admin.pairs.forEach(function(pr){
+    admin.pairs.filter(function(pr){ return byId(pr.parrainId) && byId(pr.filleulId); }).sort(byPairNames).forEach(function(pr){
       var p = byId(pr.parrainId), f = byId(pr.filleulId);
       if (!p || !f) return;
       var c = M.score(p, f, st);
@@ -1155,7 +1165,7 @@
       } else {
         var html = '<p style="margin:0;">Bonjour <strong>' + escapeHtml(r.me.firstName) + '</strong> !</p>';
         (r.parrains || []).forEach(function(p){ html += lookupCard(p, 'Ton parrain / ta marraine', r.me, 'filleul'); });
-        (r.filleuls || []).forEach(function(f){ html += lookupCard(f, (r.filleuls.length > 1 ? 'Un·e de tes filleul·es' : 'Ton ou ta filleul·e'), r.me, 'parrain'); });
+        (r.filleuls || []).sort(byName).forEach(function(f){ html += lookupCard(f, (r.filleuls.length > 1 ? 'Un·e de tes filleul·es' : 'Ton ou ta filleul·e'), r.me, 'parrain'); });
         if (!(r.parrains || []).length && !(r.filleuls || []).length){
           html += '<div class="banner">Tu n\'as pas encore de binôme. Les organisateurs te contacteront dès qu\'un binôme te sera attribué.</div>';
         } else if (M.isFilleul(r.me) && !(r.parrains || []).length){
